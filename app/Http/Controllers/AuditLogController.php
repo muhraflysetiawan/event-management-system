@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\AuditLog;
+use Illuminate\Http\Request;
+
+class AuditLogController extends Controller
+{
+    public function index()
+    {
+        $logs = AuditLog::with('user')->latest()->paginate(25);
+        return view('admin.audit_logs.index', compact('logs'));
+    }
+
+    public function show(AuditLog $log)
+    {
+        $log->load('user');
+        return view('admin.audit_logs.show', compact('log'));
+    }
+}
