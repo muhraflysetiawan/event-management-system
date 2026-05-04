@@ -74,7 +74,7 @@ class DashboardController extends Controller
                 'eventsToApprove' => Event::where('status', 'pending_approval')
                     ->whereJsonContains('required_approval_roles', $user->role->slug)
                     ->whereJsonDoesntContain('approved_by_roles', $user->role->slug)->latest()->get(),
-                'approvalHistory' => \App\Models\ApprovalLog::where('user_id', $user->id)->latest()->take(10)->get(),
+                'approvalHistory' => \App\Models\ApprovalLog::where('approver_id', $user->id)->latest()->take(10)->get(),
             ];
             return view('dashboard.head', $data);
         }
