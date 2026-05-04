@@ -24,8 +24,12 @@ class ReportController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'type' => 'required|in:overall,financial',
             'content' => 'required|string',
             'summary' => 'nullable|string',
+            'budget_allocated' => 'nullable|numeric|min:0',
+            'total_expenses' => 'nullable|numeric|min:0',
+            'financial_notes' => 'nullable|string',
         ]);
 
         $validated['event_id'] = $event->id;
@@ -56,48 +60,20 @@ class ReportController extends Controller
         return $pdf->download("report-{$report->event->title}.pdf");
     }
 
-    public function exportCsv(Report $report)
+    public function exportExcel(Report $report)
     {
         $report->load('event');
-        $attendances = Attendance::with('user')->where('event_id', $report->event_id)->get();
-        $participants = Participant::with('user')->where('event_id', $report->event_id)->get();
+        
+        if ($report->type === 'financial') {
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\FinancialReportExport($report), 
+                "financial-report-{$report->event->title}.xlsx"
+            );
+        }
 
-        $filename = "report-{$report->event->title}.csv";
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($report, $attendances, $participants) {
-            $file = fopen('php://output', 'w');
-
-            // Report info
-            fputcsv($file, ['Event Report']);
-            fputcsv($file, ['Title', $report->title]);
-            fputcsv($file, ['Event', $report->event->title]);
-            fputcsv($file, ['Date', $report->event->start_date->format('Y-m-d')]);
-            fputcsv($file, ['Total Participants', $report->total_participants]);
-            fputcsv($file, ['Total Attended', $report->total_attended]);
-            fputcsv($file, []);
-
-            // Participants
-            fputcsv($file, ['Participants']);
-            fputcsv($file, ['Name', 'Email', 'Participant Number', 'Status']);
-            foreach ($participants as $reg) {
-                fputcsv($file, [$reg->user->name, $reg->user->email, $reg->participant_number, $reg->status]);
-            }
-            fputcsv($file, []);
-
-            // Attendance
-            fputcsv($file, ['Attendance']);
-            fputcsv($file, ['Name', 'Email', 'Checked In At']);
-            foreach ($attendances as $att) {
-                fputcsv($file, [$att->user->name, $att->user->email, $att->checked_in_at->format('Y-m-d H:i:s')]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\EventReportExport($report->event), 
+            "report-{$report->event->title}.xlsx"
+        );
     }
 }

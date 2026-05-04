@@ -14,6 +14,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\ProfileController;
 
 // Guest routes
 Route::middleware('guest')->group(function () {
@@ -22,6 +23,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
+    
+    // OTP Routes
+    Route::get('/verify-otp', [RegisterController::class, 'showOtpForm'])->name('otp.verify');
+    Route::post('/verify-otp', [RegisterController::class, 'verifyOtp'])->name('otp.verify.post');
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
@@ -45,6 +50,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Events
+    Route::get('/events/{event}/project-brief/pdf', [EventController::class, 'exportProjectBriefPdf'])->name('events.projectBriefPdf');
+    Route::get('/events/approvals', [EventController::class, 'approvals'])->name('events.approvals');
+    Route::post('/events/{event}/approve', [EventController::class, 'approve'])->name('events.approve');
+    Route::post('/events/{event}/reject', [EventController::class, 'reject'])->name('events.reject');
+    Route::post('/events/{event}/publish', [EventController::class, 'publish'])->name('events.publish');
+    Route::post('/events/{event}/update-status', [EventController::class, 'updateStatus'])->name('events.updateStatus');
     Route::resource('events', EventController::class);
 
     // Participants
@@ -58,7 +69,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Attendance management
         Route::get('/events/{event}/attendance/generate', [AttendanceController::class, 'generate'])->name('attendance.generate');
-        Route::post('/events/{event}/attendance/generate-qr', [AttendanceController::class, 'generateQR'])->name('attendance.generateQR');
+        Route::post('/events/{event}/attendance/toggle', [AttendanceController::class, 'toggleStatus'])->name('attendance.toggle');
         Route::get('/events/{event}/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
 
         // Reports
@@ -66,7 +77,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/events/{event}/reports', [ReportController::class, 'store'])->name('reports.store');
         Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
         Route::get('/reports/{report}/pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
-        Route::get('/reports/{report}/csv', [ReportController::class, 'exportCsv'])->name('reports.exportCsv');
+        Route::get('/reports/{report}/excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
 
         // Certificates management
         Route::get('/events/{event}/certificates', [CertificateController::class, 'manage'])->name('certificates.manage');
@@ -94,13 +105,19 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', \App\Http\Controllers\UserController::class);
         Route::patch('/users/{user}/toggle-status', [\App\Http\Controllers\UserController::class, 'toggleStatus'])->name('users.toggleStatus');
-        
-        Route::get('/audit-logs', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
-        Route::get('/audit-logs/{log}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('audit-logs.show');
+
+        // Settings
+        Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::patch('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
     });
 
     // History
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
 
     // Lecturer Signature
     Route::get('/profile/signature', [DashboardController::class, 'signatureForm'])->name('profile.signature');

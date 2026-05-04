@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            // Cache settings or use a simple get
+            $appName = \App\Models\Setting::get('app_name', 'Horizon Event Management');
+            $view->with('appName', $appName);
+        });
     }
 }

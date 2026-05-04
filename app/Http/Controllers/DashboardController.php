@@ -55,41 +55,46 @@ class DashboardController extends Controller
             return view('dashboard.admin', $data);
         }
 
-        if ($user->isCommittee()) {
+        if ($user->isCommittee() || $user->isLecturer() || $user->isStaff() || $user->isExternal()) {
             $data = [
                 'myEvents' => Event::where('created_by', $user->id)->latest()->get(),
                 'totalCreated' => Event::where('created_by', $user->id)->count(),
                 'pendingApprovals' => Participant::whereHas('event', fn($q) => $q->where('created_by', $user->id))
                     ->where('status', 'pending')->count(),
+                'waitingApprovals' => Event::where('created_by', $user->id)->where('status', 'pending_approval')->get(),
             ];
             return view('dashboard.committee', $data);
         }
 
         if ($user->isHeadDepartment() || $user->isACOO()) {
             $data = [
-                'pendingApprovals' => Event::where('status', 'pending_approval')->count(),
-                'recentEvents' => Event::latest()->take(5)->get(),
+                'pendingApprovals' => Event::where('status', 'pending_approval')
+                    ->whereJsonContains('required_approval_roles', $user->role->slug)
+                    ->whereJsonDoesntContain('approved_by_roles', $user->role->slug)->count(),
+                'eventsToApprove' => Event::where('status', 'pending_approval')
+                    ->whereJsonContains('required_approval_roles', $user->role->slug)
+                    ->whereJsonDoesntContain('approved_by_roles', $user->role->slug)->latest()->get(),
+                'approvalHistory' => \App\Models\ApprovalLog::where('user_id', $user->id)->latest()->take(10)->get(),
             ];
             return view('dashboard.head', $data);
         }
 
         if ($user->isStudent()) {
             $data = [
-                'myParticipants' => Participant::with('event')->where('user_id', $user->id)->latest()->take(5)->get(),
-                'upcomingEvents' => Event::where('status', 'published')
-                    ->where('start_date', '>', now())->latest()->take(5)->get(),
-                'certificatesCount' => Certificate::where('user_id', $user->id)->where('status', 'available')->count(),
                 'registeredCount' => Participant::where('user_id', $user->id)->count(),
+                'certificatesCount' => Certificate::where('user_id', $user->id)->where('status', 'available')->count(),
+                'ongoingEvents' => Event::where('status', 'ongoing')
+                    ->whereHas('participants', fn($q) => $q->where('user_id', $user->id)->where('status', 'accepted'))
+                    ->get(),
+                'attendanceCount' => \App\Models\Attendance::where('user_id', $user->id)->count(),
+                'availableEvents' => Event::where('status', 'published')
+                    ->whereJsonContains('target_audience', 'student')
+                    ->where('start_date', '>', now())->latest()->take(5)->get(),
             ];
             return view('dashboard.student', $data);
         }
 
-        // Lecturer
-        $data = [
-            'availableEvents' => Event::where('status', 'published')->latest()->take(10)->get(),
-            'notifications' => $user->notifications()->latest()->take(10)->get(),
-        ];
-        return view('dashboard.lecturer', $data);
+        return view('dashboard.lecturer', ['notifications' => $user->notifications()->latest()->take(10)->get()]);
     }
 
     private function getMonthlyStats(): array

@@ -26,7 +26,8 @@
         </div>
 
         <div style="text-align:center;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border-color);">
-            <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:0.75rem;">Or enter the check-in URL manually:</p>
+
+            <p style="color:var(--text-muted);font-size:0.875rem;margin-top:1.5rem;margin-bottom:0.75rem;">Or enter token manually:</p>
             <form method="GET" action="{{ route('attendance.checkin.form') }}" style="display:flex;gap:0.5rem;">
                 <input type="text" name="token" class="form-input" placeholder="Enter QR token..." required>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i></button>
@@ -57,7 +58,21 @@ document.addEventListener('alpine:init', () => {
                 (decodedText) => {
                     this.html5QrCode.stop();
                     this.scanning = false;
-                    window.location.href = decodedText;
+                    
+                    // Extract token from scanned URL and force redirection to 127.0.0.1
+                    try {
+                        const url = new URL(decodedText);
+                        const token = url.searchParams.get('token');
+                        if (token) {
+                            window.location.href = 'http://127.0.0.1:8000/attendance/checkin?token=' + token;
+                        } else {
+                            // Fallback if not a standard URL
+                            window.location.href = decodedText;
+                        }
+                    } catch (e) {
+                        // Fallback if URL parsing fails
+                        window.location.href = decodedText;
+                    }
                 },
                 (errorMessage) => {}
             ).catch((err) => {

@@ -34,7 +34,7 @@
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;" class="dashboard-grid">
+<div class="dashboard-grid">
     <!-- Chart -->
     <div class="card">
         <div class="card-header">

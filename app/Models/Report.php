@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Report extends Model
 {
     protected $fillable = [
-        'event_id', 'created_by', 'title', 'content',
+        'event_id', 'created_by', 'title', 'content', 'type',
         'summary', 'total_participants', 'total_attended',
+        'budget_allocated', 'total_expenses', 'financial_notes',
     ];
 
     public function event(): BelongsTo

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Certificate;
 use App\Models\Participant;
 use App\Models\Event;
+use App\Models\Attendance;
 use App\Services\NotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -88,19 +89,18 @@ class CertificateController extends Controller
             ->where('status', 'accepted')
             ->get();
 
+        if ($acceptedParticipants->isEmpty()) {
+            return back()->with('error', 'No accepted participants found for this event. Certificates cannot be generated.');
+        }
+
         foreach ($acceptedParticipants as $participant) {
             $existing = Certificate::where('user_id', $participant->user_id)
                 ->where('event_id', $event->id)
                 ->first();
 
-            if (!$existing) {
-                Certificate::create([
-                    'certificate_number' => Certificate::generateCertificateNumber(),
-                    'user_id' => $participant->user_id,
-                    'event_id' => $event->id,
-                    'status' => 'available',
-                ]);
-
+            if ($existing && $existing->status === 'pending') {
+                $existing->update(['status' => 'available']);
+                // Notify user ONLY if they actually got a certificate
                 NotificationService::notifyCertificateAvailable($participant->user, $event);
             }
         }
@@ -122,10 +122,15 @@ class CertificateController extends Controller
 
         $certificate->load(['user', 'event']);
 
+        ini_set('memory_limit', '1G');
+        ini_set('max_execution_time', 300);
+
         $pdf = Pdf::loadView('certificates.pdf', compact('certificate'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download("certificate-{$certificate->certificate_number}-" . time() . ".pdf", [
+        $safeNumber = str_replace(['/', '\\'], '_', $certificate->certificate_number);
+
+        return $pdf->download("certificate-{$safeNumber}-" . time() . ".pdf", [
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',

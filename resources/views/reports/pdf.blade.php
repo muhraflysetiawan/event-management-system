@@ -37,6 +37,26 @@
 <p>{{ $report->summary }}</p>
 @endif
 
+@if($report->type === 'financial')
+<h2>Financial Details</h2>
+<table style="width:50%;">
+    <tr><td style="font-weight:bold;">Budget Allocated</td><td style="text-align:right;">{{ $report->budget_allocated ? 'Rp ' . number_format($report->budget_allocated, 0, ',', '.') : '-' }}</td></tr>
+    <tr><td style="font-weight:bold;">Total Expenses</td><td style="text-align:right;">{{ $report->total_expenses ? 'Rp ' . number_format($report->total_expenses, 0, ',', '.') : '-' }}</td></tr>
+    <tr><td style="font-weight:bold;">Surplus / Deficit</td>
+        @php
+            $diff = ($report->budget_allocated ?? 0) - ($report->total_expenses ?? 0);
+        @endphp
+        <td style="text-align:right; color: {{ $diff < 0 ? 'red' : 'green' }}; font-weight:bold;">
+            {{ $diff < 0 ? '-' : '' }}Rp {{ number_format(abs($diff), 0, ',', '.') }}
+        </td>
+    </tr>
+</table>
+@if($report->financial_notes)
+<h4>Financial Notes:</h4>
+<p>{{ $report->financial_notes }}</p>
+@endif
+@endif
+
 <h2>Report Content</h2>
 <div class="content">{!! nl2br(e($report->content)) !!}</div>
 

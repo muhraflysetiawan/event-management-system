@@ -1,43 +1,63 @@
 @extends('layouts.app')
-@section('title', 'Head Department Dashboard')
+@section('title', auth()->user()->role->name . ' Dashboard')
 
 @section('content')
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+        <div class="stat-icon red"><i class="fas fa-file-signature"></i></div>
         <div class="stat-info">
             <div class="stat-value">{{ $pendingApprovals }}</div>
-            <div class="stat-label">Pending Approvals</div>
+            <div class="stat-label">Pending Your Approval</div>
         </div>
     </div>
 </div>
 
-<div class="section-header">
-    <h3 class="section-title">Recent Events</h3>
-    <a href="{{ route('events.index') }}" class="btn btn-outline">View All</a>
+<div class="card mb-5">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-exclamation-circle" style="color: #980517; margin-right: 0.5rem;"></i> Events Needing Approval</h3>
+    </div>
+    <div class="card-body">
+        <div class="events-grid">
+            @forelse($eventsToApprove as $event)
+                <div class="event-card-premium" onclick="window.location='{{ route('events.show', $event) }}'" style="cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <span class="badge-status">REQUIRES ACTION</span>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #FFFFFF !important;">{{ $event->title }}</h3>
+                    <p style="font-size: 0.875rem; margin-bottom: 1.25rem; line-height: 1.5; color: #FFFFFF !important;">{{ Str::limit($event->description, 80) }}</p>
+                </div>
+            @empty
+                <div class="empty-state" style="padding: 1rem;">
+                    <p style="color: #6b7280;">You have no pending events to approve.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
 </div>
 
-<div class="event-grid">
-    @forelse($recentEvents as $event)
-    <a href="{{ route('events.show', $event) }}" class="event-card">
-        <div class="event-card-header">
-            <span class="badge-status badge-{{ $event->status }}">{{ ucfirst(str_replace('_', ' ', $event->status)) }}</span>
-        </div>
-        <div class="event-card-body">
-            <h3 class="event-title">{{ $event->title }}</h3>
-            <p class="event-desc">{{ Str::limit($event->description, 100) }}</p>
-            <div class="event-meta">
-                <span><i class="fas fa-calendar"></i> {{ $event->start_date->format('d M Y') }}</span>
-                <span><i class="fas fa-map-marker-alt"></i> {{ $event->location }}</span>
-            </div>
-        </div>
-    </a>
-    @empty
-    <div class="empty-state" style="grid-column:1/-1;">
-        <i class="fas fa-calendar-alt"></i>
-        <h3>No recent events</h3>
-        <p>No events have been created recently.</p>
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-history" style="color: #980517; margin-right: 0.5rem;"></i> Your Approval History</h3>
     </div>
-    @endforelse
+    <div class="card-body" style="padding: 0;">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr><th>Event Title</th><th>Action</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                    @forelse($approvalHistory as $log)
+                    <tr>
+                        <td style="font-weight:600;">{{ $log->event->title ?? 'N/A' }}</td>
+                        <td><span class="badge-status badge-{{ $log->action === 'approved' ? 'published' : 'cancelled' }}">{{ ucfirst($log->action) }}</span></td>
+                        <td style="color: #6b7280;">{{ $log->created_at->format('d M Y, H:i') }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="3" style="text-align:center; padding: 2rem; color: #9ca3af;">No approval history found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 @endsection

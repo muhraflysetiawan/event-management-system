@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Event extends Model
 {
     protected $fillable = [
-        'title', 'description', 'start_date', 'end_date',
-        'location', 'quota', 'status', 'created_by',
+        'title', 'description', 'project_brief', 'start_date', 'end_date',
+        'location', 'quota', 'status', 'is_attendance_open', 'created_by',
         'qr_code', 'qr_token', 'qr_expires_at',
         'certificate_template', 'lecturer_id', 'organizer_signature',
-        'event_logo',
+        'event_logo', 'target_audience', 'required_approval_roles',
+        'approved_by_roles',
     ];
 
     protected function casts(): array
@@ -22,6 +23,9 @@ class Event extends Model
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'qr_expires_at' => 'datetime',
+            'target_audience' => 'array',
+            'required_approval_roles' => 'array',
+            'approved_by_roles' => 'array',
         ];
     }
 
@@ -93,5 +97,43 @@ class Event extends Model
     public function isQrValid(): bool
     {
         return $this->qr_token && $this->qr_expires_at && $this->qr_expires_at->isFuture();
+    }
+    public function isFullyApproved(): bool
+    {
+        $required = $this->required_approval_roles ?? [];
+        $approved = $this->approved_by_roles ?? [];
+        
+        if (empty($required)) return true;
+        
+        foreach ($required as $role) {
+            if (!in_array($role, $approved)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    public function isApprovedByRole($roleSlug): bool
+    {
+        return in_array($roleSlug, $this->approved_by_roles ?? []);
+    }
+
+    public function getGeneratedIdAttribute(): string
+    {
+        $eventCode = Certificate::generateEventCode($this->title);
+        $monthRoman = $this->toRoman($this->start_date->format('n'));
+        $day = $this->start_date->format('d');
+        $year = $this->start_date->format('Y');
+
+        return "{$eventCode}/{$monthRoman}/{$day}/{$year}";
+    }
+
+    private function toRoman($number): string
+    {
+        $map = [
+            'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'
+        ];
+        return $map[$number - 1] ?? 'I';
     }
 }

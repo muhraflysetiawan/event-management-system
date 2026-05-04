@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Lecturer Dashboard')
+@section('title', auth()->user()->role->name . ' Dashboard')
 
 @section('content')
 <div class="card mb-3">
     <div class="card-header">
-        <h3 class="card-title"><i class="fas fa-chalkboard-teacher" style="color:var(--primary-400);margin-right:0.5rem;"></i> Available Events</h3>
+        <h3 class="card-title"><i class="fas fa-chalkboard-teacher" style="color:var(--primary-600);margin-right:0.5rem;"></i> Available Events</h3>
     </div>
     <div class="card-body">
         @forelse($availableEvents as $event)
@@ -25,7 +25,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><i class="fas fa-bell" style="color:var(--primary-400);margin-right:0.5rem;"></i> Recent Notifications</h3>
+        <h3 class="card-title"><i class="fas fa-bell" style="color:var(--primary-600);margin-right:0.5rem;"></i> Recent Notifications</h3>
         <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-outline">View All</a>
     </div>
     <div class="card-body">
@@ -34,7 +34,13 @@
             <div class="notification-icon {{ $notification->type }}"><i class="fas fa-{{ $notification->type === 'event' ? 'chalkboard-teacher' : 'bell' }}"></i></div>
             <div class="notification-content">
                 <div class="notification-title">{{ $notification->title }}</div>
-                <div class="notification-message">{{ $notification->message }}</div>
+                <div class="notification-message">
+                    @if($notification->type === 'event' && $notification->event_id && str_contains($notification->message, 'Register now!'))
+                        {!! str_replace('Register now!', '<a href="'.route('events.show', $notification->event_id).'" style="color:var(--primary-500);font-weight:bold;text-decoration:underline;">Register now!</a>', e($notification->message)) !!}
+                    @else
+                        {{ $notification->message }}
+                    @endif
+                </div>
                 <div class="notification-time">{{ $notification->created_at->diffForHumans() }}</div>
             </div>
         </div>

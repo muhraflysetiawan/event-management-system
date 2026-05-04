@@ -13,8 +13,16 @@ Alpine.data('notificationBell', () => ({
         } catch (e) {
             this.count = 0;
         }
-        // Poll every 30 seconds
-        setTimeout(() => this.fetchCount(), 30000);
+        // Poll every 10 seconds
+        setTimeout(() => this.fetchCount(), 10000);
+    }
+}));
+
+// Password Toggle Component
+Alpine.data('passwordToggle', () => ({
+    show: false,
+    toggle() {
+        this.show = !this.show;
     }
 }));
 

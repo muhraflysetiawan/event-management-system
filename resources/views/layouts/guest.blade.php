@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'TMS') — Event Management System</title>
+    <title>@yield('title', 'Welcome') — {{ $appName }}</title>
     <meta name="description" content="@yield('description', 'University Event Management System')">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,12 +22,30 @@
     <div class="guest-container">
         <div class="guest-card">
             <div class="guest-logo">
-                <div class="logo-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <h1>Event Management System</h1>
+                @php $websiteLogo = \App\Models\Setting::get('website_logo'); @endphp
+                @if($websiteLogo)
+                    <img src="{{ asset('storage/' . $websiteLogo) }}" style="max-height:80px; width:auto; margin:0 auto 1.5rem; display:block; object-fit:contain;">
+                @else
+                    <div class="logo-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                @endif
+                <h1>{{ $appName }}</h1>
                 <p class="guest-subtitle">University Event Portal</p>
             </div>
+
+            @if($errors->any())
+                <div class="alert alert-error" style="background:#fef2f2; color:#b91c1c; padding:1rem; border-radius:8px; border:1px solid #fee2e2; margin-bottom:1.5rem; font-size:0.875rem;">
+                    <div style="display:flex; gap:0.75rem; align-items:flex-start;">
+                        <i class="fas fa-exclamation-circle" style="margin-top:0.2rem;"></i>
+                        <ul style="list-style:none; margin:0; padding:0;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
 
             @if(session('success'))
                 <div class="alert alert-success">

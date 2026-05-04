@@ -36,12 +36,73 @@ class NotificationService
         }
     }
 
+    public static function notifyApprovalRequest(Event $event): void
+    {
+        $headRoles = $event->required_approval_roles ?? ['admin', 'head_csdl', 'head_baak', 'head_finance', 'head_gsd', 'head_sis', 'head_learning', 'acoo'];
+        
+        self::sendToMultipleRoles(
+            $headRoles,
+            'Event Approval Request',
+            "A new event \"{$event->title}\" requires your approval. Please review its project brief.",
+            'event',
+            $event
+        );
+
+        $users = User::whereHas('role', fn($q) => $q->whereIn('slug', $headRoles))->get();
+        foreach ($users as $user) {
+            \Illuminate\Support\Facades\Mail::raw("Hello {$user->name},\n\nA new event requires your approval:\nTitle: {$event->title}\nProject Brief:\n{$event->project_brief}\n\nPlease login to the dashboard to approve or reject it.", function($msg) use ($user, $event) {
+                $msg->to($user->email)->subject("Action Required: Event Approval Request - {$event->title}");
+            });
+        }
+    }
+
     public static function notifyEventPublished(Event $event): void
     {
         self::sendToMultipleRoles(
-            ['student', 'lecturer'],
+            $event->target_audience ?? [],
             'New Event Available',
             "A new event \"{$event->title}\" has been published. Register now!",
+            'event',
+            $event
+        );
+    }
+
+    public static function notifyEventFullyApproved(Event $event): void
+    {
+        $creator = User::find($event->created_by);
+        if ($creator) {
+            self::send(
+                $creator,
+                'Event Fully Approved!',
+                "Your event \"{$event->title}\" has been approved by all required departments. You can now post/publish it.",
+                'event',
+                $event
+            );
+            
+            \Illuminate\Support\Facades\Mail::raw("Hello {$creator->name},\n\nGood news! Your event \"{$event->title}\" has received all necessary approvals. You can now log in to the dashboard and publish your event to make it visible to participants.", function($msg) use ($creator, $event) {
+                $msg->to($creator->email)->subject("Action Required: Your Event is Fully Approved - {$event->title}");
+            });
+        }
+    }
+
+    public static function notifyEventApproved(Event $event): void
+    {
+        // Notify the creator
+        if ($event->creator) {
+            self::send(
+                $event->creator,
+                'Event Approved',
+                "Your event \"{$event->title}\" has been approved.",
+                'event',
+                $event
+            );
+        }
+
+        // Notify target audience users
+        self::sendToMultipleRoles(
+            $event->target_audience ?? [],
+            'New Event Available',
+            "A new event \"{$event->title}\" has just been approved. Register now!",
             'event',
             $event
         );
@@ -66,6 +127,17 @@ class NotificationService
             'Certificate Available',
             "Your certificate for \"{$event->title}\" is now available for download.",
             'certificate',
+            $event
+        );
+    }
+
+    public static function notifyEventReminder(User $user, Event $event): void
+    {
+        self::send(
+            $user,
+            'Event Reminder (H-2)',
+            "The event \"{$event->title}\" will start in 2 days. Get ready!",
+            'event',
             $event
         );
     }

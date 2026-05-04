@@ -59,7 +59,7 @@
             </div>
 
             <div class="action-group mt-3" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-                <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route('dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Signature</button>
             </div>
         </form>

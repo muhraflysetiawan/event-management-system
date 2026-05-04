@@ -11,7 +11,12 @@
 
     <div class="form-group">
         <label class="form-label" for="password">Password</label>
-        <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+        <div class="password-group" x-data="passwordToggle()">
+            <input :type="show ? 'text' : 'password'" id="password" name="password" class="form-input" placeholder="••••••••" required>
+            <button type="button" class="password-toggle" @click="toggle()">
+                <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+        </div>
     </div>
 
     <div class="form-check">

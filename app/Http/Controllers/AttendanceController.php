@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Event;
 use App\Models\Participant;
+use App\Models\Certificate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -13,34 +14,48 @@ class AttendanceController extends Controller
 {
     public function generate(Event $event)
     {
-        return view('attendance.generate', compact('event'));
+        $participants = Participant::with(['user', 'user.attendances' => function($q) use ($event) {
+            $q->where('event_id', $event->id);
+        }])
+        ->where('event_id', $event->id)
+        ->where('status', 'accepted')
+        ->get();
+
+        return view('attendance.generate', compact('event', 'participants'));
     }
 
-    public function generateQR(Request $request, Event $event)
+    public function toggleStatus(Request $request, Event $event)
     {
-        $request->validate([
-            'duration' => 'required|integer|min:5|max:480',
-        ]);
+        $status = $request->input('status'); // 'open' or 'close'
 
-        $token = Str::random(32);
-        $event->update([
-            'qr_token' => $token,
-            'qr_expires_at' => now()->addMinutes((int) $request->duration),
-        ]);
+        if ($status === 'open') {
+            $token = $event->qr_token ?: Str::random(32);
+            $event->update([
+                'is_attendance_open' => true,
+                'qr_token' => $token,
+                'qr_expires_at' => null,
+            ]);
 
-        $qrUrl = route('attendance.checkin.form', ['token' => $token]);
+            $qrUrl = $request->getSchemeAndHttpHost() . '/attendance/checkin?token=' . $token;
 
-        return back()->with([
-            'qr_generated' => true,
-            'qr_url' => $qrUrl,
-            'qr_token' => $token,
-            'expires_at' => $event->fresh()->qr_expires_at->toIso8601String(),
-        ]);
+            return back()->with([
+                'qr_generated' => true,
+                'qr_url' => $qrUrl,
+                'qr_token' => $token,
+                'success' => 'Attendance is now OPEN.',
+            ]);
+        } else {
+            $event->update([
+                'is_attendance_open' => false,
+            ]);
+            return back()->with('success', 'Attendance is now CLOSED.');
+        }
     }
 
     public function showScanner()
     {
-        return view('attendance.scan');
+        $openEvents = Event::where('is_attendance_open', true)->get();
+        return view('attendance.scan', compact('openEvents'));
     }
 
     public function checkinForm(Request $request)
@@ -52,8 +67,8 @@ class AttendanceController extends Controller
             return view('attendance.result', ['success' => false, 'message' => 'Invalid QR code.']);
         }
 
-        if (!$event->isQrValid()) {
-            return view('attendance.result', ['success' => false, 'message' => 'QR code has expired.']);
+        if (!$event->is_attendance_open) {
+            return view('attendance.result', ['success' => false, 'message' => 'Attendance is currently CLOSED by the committee.']);
         }
 
         return view('attendance.confirm', compact('event', 'token'));
@@ -72,8 +87,8 @@ class AttendanceController extends Controller
             return back()->with('error', 'Invalid QR code.');
         }
 
-        if (!$event->isQrValid()) {
-            return back()->with('error', 'QR code has expired.');
+        if (!$event->is_attendance_open) {
+            return back()->with('error', 'Attendance is currently CLOSED by the committee.');
         }
 
         // Check if user is registered and accepted
@@ -108,6 +123,17 @@ class AttendanceController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
+        // Sequential Certificate Generation based on attendance order
+        $certNumber = Certificate::generateCertificateNumber($event->id);
+
+        Certificate::firstOrCreate(
+            ['user_id' => $user->id, 'event_id' => $event->id],
+            [
+                'certificate_number' => $certNumber,
+                'status' => 'pending'
+            ]
+        );
+
         return view('attendance.result', [
             'success' => true,
             'message' => 'Attendance recorded successfully!',
@@ -117,11 +143,13 @@ class AttendanceController extends Controller
 
     public function list(Event $event)
     {
-        $attendances = Attendance::with('user')
-            ->where('event_id', $event->id)
-            ->orderBy('checked_in_at')
-            ->get();
+        $participants = Participant::with(['user', 'user.attendances' => function($q) use ($event) {
+            $q->where('event_id', $event->id);
+        }])
+        ->where('event_id', $event->id)
+        ->where('status', 'accepted')
+        ->get();
 
-        return view('attendance.list', compact('event', 'attendances'));
+        return view('attendance.list', compact('event', 'participants'));
     }
 }

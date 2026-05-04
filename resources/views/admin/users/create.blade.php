@@ -19,10 +19,10 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Role</label>
-                <select name="role_id" class="form-input" required>
+                <select name="role_id" id="role-select" class="form-input" required onchange="toggleOrganization()">
                     <option value="">Select Role</option>
                     @foreach($roles as $role)
-                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                        <option value="{{ $role->id }}" data-slug="{{ $role->slug }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -35,13 +35,9 @@
             </div>
         </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label">Department</label>
-                <input type="text" name="department" class="form-input" value="{{ old('department') }}">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Organization</label>
+        <div class="form-row" id="organization-group" style="display: none;">
+            <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Organization (For External Users)</label>
                 <input type="text" name="organization" class="form-input" value="{{ old('organization') }}">
             </div>
         </div>
@@ -49,18 +45,45 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-input" required>
+                <div class="password-group" x-data="passwordToggle()">
+                    <input :type="show ? 'text' : 'password'" name="password" class="form-input" required>
+                    <button type="button" class="password-toggle" @click="toggle()">
+                        <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" name="password_confirmation" class="form-input" required>
+                <div class="password-group" x-data="passwordToggle()">
+                    <input :type="show ? 'text' : 'password'" name="password_confirmation" class="form-input" required>
+                    <button type="button" class="password-toggle" @click="toggle()">
+                        <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
         <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:0.75rem;">
-            <a href="{{ route('admin.users.index') }}" class="btn" style="background:#473f3d;color:white;border:none;">Cancel</a>
+            <a href="{{ route('admin.users.index') }}" class="btn" style="background:#473f3d;color:white;border:none;"><i class="fas fa-arrow-left"></i> Back</a>
             <button type="submit" class="btn btn-primary">Create User</button>
         </div>
     </form>
 </div>
+
+<script>
+function toggleOrganization() {
+    const select = document.getElementById('role-select');
+    const selectedOption = select.options[select.selectedIndex];
+    const roleSlug = selectedOption ? selectedOption.getAttribute('data-slug') : '';
+    const orgGroup = document.getElementById('organization-group');
+    
+    if (roleSlug === 'external') {
+        orgGroup.style.display = 'grid'; // because it's a form-row
+    } else {
+        orgGroup.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', toggleOrganization);
+</script>
 @endsection

@@ -43,17 +43,15 @@
             position: absolute;
             top: 40px;
             left: 50px;
-            max-height: 100px; /* Enlarged */
-            max-width: 180px;
-            object-fit: contain;
+            height: 100px;
+            width: auto;
         }
         .event-logo {
             position: absolute;
             top: 40px;
             right: 50px;
-            max-height: 100px; /* Enlarged */
-            max-width: 180px;
-            object-fit: contain;
+            height: 100px;
+            width: auto;
         }
 
         .content {
@@ -156,26 +154,64 @@
 </head>
 <body>
     @php
-        function getBase64Image($path) {
-            if (file_exists($path)) {
-                $type = pathinfo($path, PATHINFO_EXTENSION);
-                $data = file_get_contents($path);
-                return 'data:image/' . $type . ';base64,' . base64_encode($data);
+        if (!function_exists('getOptimizedBase64Image')) {
+            function getOptimizedBase64Image($pathOrBase64, $maxWidth = 800) {
+                if (!$pathOrBase64) return null;
+
+                if (str_starts_with($pathOrBase64, 'data:image')) {
+                    list($type, $data) = explode(';', $pathOrBase64);
+                    list(, $data)      = explode(',', $data);
+                    $data = base64_decode($data);
+                } else {
+                    if (!file_exists($pathOrBase64)) return null;
+                    $data = file_get_contents($pathOrBase64);
+                }
+                
+                $image = @imagecreatefromstring($data);
+                if (!$image) return null;
+                
+                $width = imagesx($image);
+                $height = imagesy($image);
+                
+                if ($width > $maxWidth) {
+                    $newWidth = $maxWidth;
+                    $newHeight = floor($height * ($maxWidth / $width));
+                    
+                    $newImage = imagecreatetruecolor($newWidth, $newHeight);
+                    
+                    imagealphablending($newImage, false);
+                    imagesavealpha($newImage, true);
+                    $transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
+                    imagefilledrectangle($newImage, 0, 0, $newWidth, $newHeight, $transparent);
+                    
+                    imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                    
+                    ob_start();
+                    imagepng($newImage);
+                    $data = ob_get_clean();
+                    imagedestroy($newImage);
+                }
+                imagedestroy($image);
+                
+                return 'data:image/png;base64,' . base64_encode($data);
             }
-            return null;
         }
-        $campusLogo = getBase64Image(public_path('assets/logo_kampus.png'));
+
+        $bgImage = getOptimizedBase64Image(public_path('assets/certificates/' . $certificate->event->certificate_template), 1200);
+        $campusLogo = getOptimizedBase64Image(public_path('assets/logo_kampus.png'), 300);
         $eventLogo = null;
         if ($certificate->event->event_logo) {
-            $eventLogo = getBase64Image(public_path('assets/' . $certificate->event->event_logo));
+            $eventLogo = getOptimizedBase64Image(public_path('assets/' . $certificate->event->event_logo), 300);
         }
     @endphp
 
     <div class="container">
         <!-- Background -->
-        <img class="background" src="{{ public_path('assets/certificates/' . $certificate->event->certificate_template) }}" alt="Background">
+        @if($bgImage)
+            <img class="background" src="{{ $bgImage }}" alt="Background">
+        @endif
 
-        <!-- Logos as Base64 -->
+        <!-- Logos -->
         @if($campusLogo)
             <img class="campus-logo" src="{{ $campusLogo }}" alt="Campus Logo">
         @endif
@@ -191,14 +227,26 @@
             <div class="presented-to">THIS CERTIFICATE IS PROUDLY PRESENTED TO</div>
             
             <div class="participant-name-wrapper">
-                <div class="participant-name">{{ $certificate->user->name }}</div>
+                @php
+                    $words = explode(' ', $certificate->user->name);
+                    if (count($words) > 2) {
+                        $formattedName = $words[0] . ' ' . $words[1];
+                        for ($i = 2; $i < count($words); $i++) {
+                            $formattedName .= ' ' . strtoupper(substr($words[$i], 0, 1)) . '.';
+                        }
+                    } else {
+                        $formattedName = $certificate->user->name;
+                    }
+                @endphp
+                <div class="participant-name">{{ $formattedName }}</div>
                 <div class="name-line"></div>
             </div>
             
             <div class="description">
                 For their active participation and successful completion of the <br>
                 <span class="event-name">{{ $certificate->event->title }}</span><br>
-                held on {{ $certificate->event->start_date->format('d F Y') }} at {{ $certificate->event->location }}.
+                <span style="font-weight: normal; font-size: 16px;">{{ $certificate->certificate_number }}</span><br>
+                held on {{ $certificate->event->start_date->format('d F Y') }}.
             </div>
         </div>
 
@@ -209,7 +257,7 @@
                         <div class="signature-label">Head of Department</div>
                         <div class="signature-image-wrapper">
                             @if($certificate->event->lecturer && $certificate->event->lecturer->signature)
-                                <img class="signature-img" src="{{ $certificate->event->lecturer->signature }}">
+                                <img class="signature-img" src="{{ getOptimizedBase64Image($certificate->event->lecturer->signature, 300) }}">
                             @endif
                         </div>
                         <div class="signature-line"></div>
@@ -219,7 +267,7 @@
                         <div class="signature-label">General Manager</div>
                         <div class="signature-image-wrapper">
                             @if($certificate->event->organizer_signature)
-                                <img class="signature-img" src="{{ $certificate->event->organizer_signature }}">
+                                <img class="signature-img" src="{{ getOptimizedBase64Image($certificate->event->organizer_signature, 300) }}">
                             @endif
                         </div>
                         <div class="signature-line"></div>
