@@ -58,15 +58,21 @@
             <div style="color:var(--text-secondary);line-height:1.8;white-space:pre-line; overflow-wrap: break-word;">{{ $event->description }}</div>
         </div>
 
-        @if((auth()->user()->isAdmin() || auth()->user()->isCommittee() || auth()->user()->isHeadDepartment() || auth()->user()->isACOO() || $event->created_by === auth()->id()) && $event->project_brief)
+        @if((auth()->user()->isAdmin() || auth()->user()->isCommittee() || auth()->user()->isHeadDepartment() || auth()->user()->isACOO() || $event->created_by === auth()->id()) && ($event->project_brief || $event->project_brief_pdf))
         <div style="margin-bottom:1.5rem; background: var(--bg-input); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div class="detail-label" style="color: var(--primary-400); margin-bottom: 0;"><i class="fas fa-file-signature"></i> Project Brief</div>
-                <a href="{{ route('events.projectBriefPdf', $event) }}" class="btn btn-sm btn-outline" target="_blank" style="width: 100%; text-align: center;"><i class="fas fa-file-pdf"></i> View / Download PDF</a>
+                @if($event->project_brief_type === 'pdf' && $event->project_brief_pdf)
+                    <a href="{{ route('events.projectBriefPdf', $event) }}" class="btn btn-sm btn-outline" target="_blank" style="width: 100%; text-align: center;"><i class="fas fa-file-pdf"></i> View / Download PDF</a>
+                @elseif($event->project_brief_type === 'text')
+                    <a href="{{ route('events.projectBriefPdf', $event) }}" class="btn btn-sm btn-outline" target="_blank" style="width: 100%; text-align: center;"><i class="fas fa-file-pdf"></i> View / Download PDF</a>
+                @endif
             </div>
+            @if($event->project_brief_type === 'text')
             <div style="color:var(--text-secondary);line-height:1.8; overflow-x: auto;" class="rich-text-container">
                 {!! $event->project_brief !!}
             </div>
+            @endif
         </div>
         @endif
 

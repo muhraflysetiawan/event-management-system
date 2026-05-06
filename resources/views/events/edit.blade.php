@@ -20,7 +20,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form id="update-event-form" method="POST" action="{{ route('events.update', $event) }}">
+        <form id="update-event-form" method="POST" action="{{ route('events.update', $event) }}" enctype="multipart/form-data">
             @csrf @method('PUT')
             <div class="form-group">
                 <label class="form-label" for="title">Event Title *</label>
@@ -33,8 +33,24 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="project_brief">Project Brief (for Approval) *</label>
-                <textarea id="project_brief" name="project_brief" class="form-input" rows="5" required>{{ old('project_brief', $event->project_brief) }}</textarea>
+                <label class="form-label" for="project_brief_type">Project Brief Format *</label>
+                <select id="project_brief_type" name="project_brief_type" class="form-input" onchange="toggleProjectBriefType()">
+                    <option value="text" {{ old('project_brief_type', $event->project_brief_type ?? 'text') === 'text' ? 'selected' : '' }}>Create Manually (Text Editor)</option>
+                    <option value="pdf" {{ old('project_brief_type', $event->project_brief_type) === 'pdf' ? 'selected' : '' }}>Upload Document Format PDF</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="brief_text_container" style="{{ old('project_brief_type', $event->project_brief_type ?? 'text') === 'text' ? '' : 'display:none;' }}">
+                <label class="form-label" for="project_brief">Project Brief Content *</label>
+                <textarea id="project_brief" name="project_brief" class="form-input" rows="5">{{ old('project_brief', $event->project_brief) }}</textarea>
+            </div>
+
+            <div class="form-group" id="brief_pdf_container" style="{{ old('project_brief_type', $event->project_brief_type) === 'pdf' ? '' : 'display:none;' }}">
+                <label class="form-label" for="project_brief_pdf">Upload Project Brief (PDF) *</label>
+                <input type="file" id="project_brief_pdf" name="project_brief_pdf" class="form-input" accept="application/pdf">
+                @if($event->project_brief_pdf)
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Current PDF: <a href="{{ route('events.projectBriefPdf', $event) }}" target="_blank" style="color:var(--primary);">View PDF</a> (Upload new file to replace)</p>
+                @endif
             </div>
 
             <div class="form-row">
@@ -157,6 +173,17 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js"></script>
 <script>
+    function toggleProjectBriefType() {
+        var type = document.getElementById('project_brief_type').value;
+        if (type === 'text') {
+            document.getElementById('brief_text_container').style.display = 'block';
+            document.getElementById('brief_pdf_container').style.display = 'none';
+        } else {
+            document.getElementById('brief_text_container').style.display = 'none';
+            document.getElementById('brief_pdf_container').style.display = 'block';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         tinymce.init({
             selector: '#project_brief',

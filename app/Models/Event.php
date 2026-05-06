@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Event extends Model
 {
     protected $fillable = [
-        'title', 'description', 'project_brief', 'start_date', 'end_date',
+        'title', 'description', 'project_brief_type', 'project_brief', 'project_brief_pdf', 'start_date', 'end_date',
         'location', 'quota', 'status', 'is_attendance_open', 'created_by',
         'qr_code', 'qr_token', 'qr_expires_at',
         'certificate_template', 'lecturer_id', 'organizer_signature',

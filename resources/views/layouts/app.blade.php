@@ -366,7 +366,7 @@
                 </a>
             @endif
 
-            @if(auth()->user()->isAdmin() || auth()->user()->isCommittee() || auth()->user()->isHeadDepartment() || in_array(auth()->user()->role->slug ?? '', ['lecturer', 'staff', 'external']))
+            @if(auth()->user()->isAdmin() || auth()->user()->isCommittee() || auth()->user()->isHeadDepartment() || auth()->user()->isACOO() || in_array(auth()->user()->role->slug ?? '', ['lecturer', 'staff', 'external']))
                 <div class="nav-divider">
                     <span>Management</span>
                 </div>

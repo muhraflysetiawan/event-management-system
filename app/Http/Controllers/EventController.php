@@ -64,7 +64,9 @@ class EventController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'project_brief' => 'required|string',
+            'project_brief_type' => 'required|in:text,pdf',
+            'project_brief' => 'required_if:project_brief_type,text|nullable|string',
+            'project_brief_pdf' => 'required_if:project_brief_type,pdf|nullable|file|mimes:pdf|max:10240',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'location' => 'required|string|max:255',
@@ -78,6 +80,10 @@ class EventController extends Controller
             'materials.*.title' => 'nullable|string|max:255',
             'materials.*.description' => 'nullable|string',
         ]);
+
+        if ($request->hasFile('project_brief_pdf')) {
+            $validated['project_brief_pdf'] = $request->file('project_brief_pdf')->store('project_briefs', 'public');
+        }
 
         $validated['created_by'] = $user->id;
         $event = Event::create($validated);
@@ -132,7 +138,9 @@ class EventController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'project_brief' => 'required|string',
+            'project_brief_type' => 'required|in:text,pdf',
+            'project_brief' => 'required_if:project_brief_type,text|nullable|string',
+            'project_brief_pdf' => 'nullable|file|mimes:pdf|max:10240',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'location' => 'required|string|max:255',
@@ -148,6 +156,10 @@ class EventController extends Controller
             if (!in_array($validated['status'], ['draft', 'pending_approval'])) {
                 $validated['status'] = $event->status; // Revert to current if unauthorized
             }
+        }
+
+        if ($request->hasFile('project_brief_pdf')) {
+            $validated['project_brief_pdf'] = $request->file('project_brief_pdf')->store('project_briefs', 'public');
         }
 
         $oldData = $event->toArray();
@@ -182,8 +194,18 @@ class EventController extends Controller
     public function exportProjectBriefPdf(Event $event)
     {
         $user = auth()->user();
+        
+        // Add auth check that allows creators or roles with permission
         if (!$user->isAdmin() && !$user->isCommittee() && !$user->isHeadDepartment() && !$user->isACOO() && $event->created_by !== $user->id) {
-            abort(403);
+            abort(403, 'You do not have permission to view this document.');
+        }
+
+        if ($event->project_brief_type === 'pdf' && $event->project_brief_pdf) {
+            $filePath = storage_path('app/public/' . $event->project_brief_pdf);
+            if (!file_exists($filePath)) {
+                abort(404, 'PDF file not found.');
+            }
+            return response()->file($filePath);
         }
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('events.project_brief_pdf', compact('event'));
