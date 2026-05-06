@@ -13,14 +13,19 @@
             
             @foreach($survey->questions as $index => $question)
                 <div class="mb-5 p-4" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <p class="mb-3" style="font-weight: 600; font-size: 1.1rem;">{{ $index + 1 }}. {{ $question->question_text }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <p style="font-weight: 600; font-size: 1.1rem; margin: 0;">{{ $index + 1 }}. {{ $question->question_text }}</p>
+                        @if($question->is_required)
+                            <span style="color: #ef4444; font-size: 0.8rem; font-weight: 600;">* Required</span>
+                        @endif
+                    </div>
                     
                     @if($question->type === 'scale')
                         <div class="scale-options" style="display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto; position: relative; padding-bottom: 2rem;">
                             @for($i = 1; $i <= 5; $i++)
                                 <div style="text-align: center; flex: 1;">
                                     <label style="cursor: pointer; display: block;">
-                                        <input type="radio" name="answers[{{ $question->id }}]" value="{{ $i }}" required style="width: 1.5rem; height: 1.5rem; margin-bottom: 0.5rem;">
+                                        <input type="radio" name="answers[{{ $question->id }}]" value="{{ $i }}" {{ $question->is_required ? 'required' : '' }} style="width: 1.5rem; height: 1.5rem; margin-bottom: 0.5rem;">
                                         <div style="font-size: 0.9rem;">{{ $i }}</div>
                                     </label>
                                 </div>
@@ -31,7 +36,7 @@
                             </div>
                         </div>
                     @else
-                        <textarea name="answers[{{ $question->id }}]" class="form-control" rows="4" placeholder="Your comments here..." required></textarea>
+                        <textarea name="answers[{{ $question->id }}]" class="form-control" rows="4" placeholder="Your comments here..." {{ $question->is_required ? 'required' : '' }}></textarea>
                     @endif
                 </div>
             @endforeach

@@ -7,19 +7,19 @@
         <h3 class="card-title">Joining Requirements: {{ $event->title }}</h3>
     </div>
     <div class="card-body">
-        <p class="mb-4 text-muted">Add "Yes/No" questions that participants must answer before joining. If they answer "No" to any of these questions, they will be automatically rejected.</p>
+        <p class="mb-4 text-muted">Add questions that participants will answer before joining. The system will provide suggestions based on their answers, but they will not be prevented from joining.</p>
         
         <form action="{{ route('surveys.requirements.save', $event) }}" method="POST" id="requirements-form">
             @csrf
             
             <div id="requirements-container">
-                <label class="form-label mb-2">Requirement Questions (Must be answered "Yes" to join)</label>
+                <label class="form-label mb-2">Requirement Questions</label>
                 @if(isset($requirements) && $requirements->count() > 0)
                     @foreach($requirements as $index => $req)
                         <div class="requirement-item mb-3 p-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                             <div class="row">
                                 <div class="col-md-11 mb-2">
-                                    <input type="text" name="requirements[]" class="form-control" placeholder="e.g., Do you have a laptop?" value="{{ $req->question_text }}" required>
+                                    <input type="text" name="requirements[{{ $index }}][text]" class="form-control" placeholder="e.g., Do you have a laptop?" value="{{ $req->question_text }}" required>
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-danger remove-requirement" style="width: 100%;"><i class="fas fa-trash"></i></button>
@@ -31,7 +31,7 @@
                     <div class="requirement-item mb-3 p-3" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                         <div class="row">
                             <div class="col-md-11 mb-2">
-                                <input type="text" name="requirements[]" class="form-control" placeholder="e.g., Do you have a laptop?" required>
+                                <input type="text" name="requirements[0][text]" class="form-control" placeholder="e.g., Do you have a laptop?" required>
                             </div>
                             <div class="col-md-1">
                                 <button type="button" class="btn btn-danger remove-requirement" style="width: 100%;"><i class="fas fa-trash"></i></button>
@@ -41,7 +41,7 @@
                 @endif
             </div>
 
-            <button type="button" id="add-requirement" class="btn btn-outline mb-4"><i class="fas fa-plus"></i> Add Requirement</button>
+            <button type="button" id="add-requirement" class="btn btn-outline mb-4"><i class="fas fa-plus"></i> Add Question</button>
 
             <div class="action-group" style="justify-content: flex-end;">
                 <a href="{{ route('events.show', $event) }}" class="btn btn-secondary">Cancel</a>
@@ -55,6 +55,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('requirements-container');
     const addButton = document.getElementById('add-requirement');
+    let reqIndex = {{ isset($requirements) ? $requirements->count() : 1 }};
 
     addButton.addEventListener('click', function() {
         const div = document.createElement('div');
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         div.innerHTML = `
             <div class="row">
                 <div class="col-md-11 mb-2">
-                    <input type="text" name="requirements[]" class="form-control" placeholder="e.g., Do you have a laptop?" required>
+                    <input type="text" name="requirements[${reqIndex}][text]" class="form-control" placeholder="e.g., Do you have a laptop?" required>
                 </div>
                 <div class="col-md-1">
                     <button type="button" class="btn btn-danger remove-requirement" style="width: 100%;"><i class="fas fa-trash"></i></button>
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         container.appendChild(div);
+        reqIndex++;
         attachRemoveEvent(div.querySelector('.remove-requirement'));
     });
 

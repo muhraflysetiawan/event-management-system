@@ -126,6 +126,8 @@ Route::middleware(['auth'])->group(function () {
     // Surveys & Requirements (Organizer)
     Route::get('/events/{event}/survey/manage', [\App\Http\Controllers\SurveyController::class, 'manageSurvey'])->name('surveys.manage');
     Route::post('/events/{event}/survey/manage', [\App\Http\Controllers\SurveyController::class, 'saveSurvey'])->name('surveys.save');
+    Route::get('/events/{event}/survey/results', [\App\Http\Controllers\SurveyController::class, 'viewResults'])->name('surveys.results');
+    Route::get('/events/{event}/survey/report', [\App\Http\Controllers\SurveyController::class, 'viewReport'])->name('surveys.report');
     Route::get('/events/{event}/requirements/manage', [\App\Http\Controllers\SurveyController::class, 'manageRequirements'])->name('surveys.requirements.manage');
     Route::post('/events/{event}/requirements/manage', [\App\Http\Controllers\SurveyController::class, 'saveRequirements'])->name('surveys.requirements.save');
 

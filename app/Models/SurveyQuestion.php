@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SurveyQuestion extends Model
 {
-    protected $fillable = ['survey_id', 'question_text', 'type'];
+    protected $fillable = ['survey_id', 'question_text', 'type', 'is_required'];
 
     public function survey(): BelongsTo
     {

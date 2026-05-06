@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EventRequirement extends Model
 {
-    protected $fillable = ['event_id', 'question_text'];
+    protected $fillable = ['event_id', 'question_text', 'is_required'];
 
     public function event(): BelongsTo
     {

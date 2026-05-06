@@ -32,6 +32,7 @@ class SurveyController extends Controller
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',
             'questions.*.type' => 'required|in:scale,text',
+            'questions.*.is_required' => 'nullable|boolean',
         ]);
 
         DB::transaction(function () use ($request, $event) {
@@ -40,15 +41,13 @@ class SurveyController extends Controller
                 ['title' => $request->title]
             );
 
-            // Simple way: delete old questions and create new ones
-            // In a production app, we might want to keep IDs to preserve responses, 
-            // but for this task, a fresh start is easier.
             $survey->questions()->delete();
 
             foreach ($request->questions as $q) {
                 $survey->questions()->create([
                     'question_text' => $q['text'],
                     'type' => $q['type'],
+                    'is_required' => isset($q['is_required']) ? (bool)$q['is_required'] : false,
                 ]);
             }
         });
@@ -70,16 +69,17 @@ class SurveyController extends Controller
 
         $request->validate([
             'requirements' => 'nullable|array',
-            'requirements.*' => 'required|string',
+            'requirements.*.text' => 'required|string',
         ]);
 
         DB::transaction(function () use ($request, $event) {
             $event->requirements()->delete();
 
             if ($request->has('requirements')) {
-                foreach ($request->requirements as $text) {
+                foreach ($request->requirements as $req) {
                     $event->requirements()->create([
-                        'question_text' => $text,
+                        'question_text' => $req['text'],
+                        'is_required' => false, // No longer used for blocking
                     ]);
                 }
             }
@@ -89,13 +89,56 @@ class SurveyController extends Controller
             ->with('success', 'Joining requirements saved successfully!');
     }
 
+    public function viewResults(Event $event)
+    {
+        $this->authorizeOrganizer($event);
+        $survey = $event->survey()->with(['questions.responses.user'])->firstOrFail();
+        
+        $totalResponses = $survey->responses()->distinct('user_id')->count();
+
+        return view('surveys.results', compact('event', 'survey', 'totalResponses'));
+    }
+
+    public function viewReport(Event $event)
+    {
+        $this->authorizeOrganizer($event);
+        $survey = $event->survey()->with(['questions.responses'])->firstOrFail();
+        
+        $questions = $survey->questions;
+        $reportData = [];
+        $overallScore = 0;
+        $scaleQuestionCount = 0;
+
+        foreach ($questions as $question) {
+            if ($question->type === 'scale') {
+                $avg = $question->responses()->avg('answer');
+                $reportData[] = [
+                    'question' => $question->question_text,
+                    'average' => round($avg, 2),
+                    'total' => $question->responses()->count(),
+                ];
+                $overallScore += $avg;
+                $scaleQuestionCount++;
+            }
+        }
+
+        $finalScore = $scaleQuestionCount > 0 ? $overallScore / $scaleQuestionCount : 0;
+        $conclusion = "Good";
+        if ($finalScore < 3.0) $conclusion = "Needs Improvement";
+        elseif ($finalScore < 4.0) $conclusion = "Satisfactory";
+
+        $unsatisfactory = array_filter($reportData, function($item) {
+            return $item['average'] < 3.5;
+        });
+
+        return view('surveys.report', compact('event', 'survey', 'reportData', 'finalScore', 'conclusion', 'unsatisfactory'));
+    }
+
     // --- Participant Actions (Requirements) ---
 
     public function showRequirements(Event $event)
     {
         $user = auth()->user();
-        
-        // Check if already registered
         if ($event->participants()->where('user_id', $user->id)->exists()) {
             return redirect()->route('events.show', $event)->with('info', 'You are already registered.');
         }
@@ -108,17 +151,21 @@ class SurveyController extends Controller
     {
         $user = auth()->user();
         $requirements = $event->requirements;
-
         $answers = $request->input('answers', []);
         
+        $yesCount = 0;
+        $noCount = 0;
+
         foreach ($requirements as $req) {
-            if (!isset($answers[$req->id]) || $answers[$req->id] !== 'yes') {
-                return redirect()->route('events.show', $event)
-                    ->with('error', 'You do not meet the requirements to join this event.');
+            $answer = $answers[$req->id] ?? 'no';
+            if ($answer === 'yes') {
+                $yesCount++;
+            } else {
+                $noCount++;
             }
         }
 
-        // All requirements met, join the event
+        // Always join the event
         Participant::create([
             'registration_number' => Participant::generateRegistrationNumber($event, $user),
             'user_id' => $user->id,
@@ -126,8 +173,15 @@ class SurveyController extends Controller
             'status' => 'accepted',
         ]);
 
+        $message = 'You have successfully joined the event!';
+        if ($yesCount <= $noCount && $requirements->count() > 0) {
+            return redirect()->route('events.show', $event)
+                ->with('success', $message)
+                ->with('info', 'Suggestion: Based on your answers, you might not fully meet the ideal criteria for this event, but you are still welcome to join!');
+        }
+
         return redirect()->route('events.show', $event)
-            ->with('success', 'You have successfully joined the event!');
+            ->with('success', $message);
     }
 
     // --- Participant Actions (Survey) ---
@@ -137,7 +191,6 @@ class SurveyController extends Controller
         $user = auth()->user();
         $survey = $event->survey()->with('questions')->firstOrFail();
 
-        // Check if already filled
         if (SurveyResponse::where('survey_id', $survey->id)->where('user_id', $user->id)->exists()) {
             return redirect()->route('certificates.index')->with('info', 'You have already completed the survey.');
         }
@@ -150,19 +203,25 @@ class SurveyController extends Controller
         $user = auth()->user();
         $survey = $event->survey()->with('questions')->firstOrFail();
 
-        $request->validate([
-            'answers' => 'required|array',
-            'answers.*' => 'required',
-        ]);
+        $answers = $request->input('answers', []);
+        
+        // Manual validation for mandatory questions
+        foreach ($survey->questions as $question) {
+            if ($question->is_required && empty($answers[$question->id])) {
+                return back()->with('error', 'Please answer all mandatory survey questions.');
+            }
+        }
 
-        DB::transaction(function () use ($request, $survey, $user) {
-            foreach ($request->answers as $questionId => $answer) {
-                SurveyResponse::create([
-                    'survey_id' => $survey->id,
-                    'user_id' => $user->id,
-                    'question_id' => $questionId,
-                    'answer' => $answer,
-                ]);
+        DB::transaction(function () use ($answers, $survey, $user) {
+            foreach ($answers as $questionId => $answer) {
+                if ($answer !== null) {
+                    SurveyResponse::create([
+                        'survey_id' => $survey->id,
+                        'user_id' => $user->id,
+                        'question_id' => $questionId,
+                        'answer' => $answer,
+                    ]);
+                }
             }
         });
 
