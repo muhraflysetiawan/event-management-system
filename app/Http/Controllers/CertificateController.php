@@ -120,6 +120,21 @@ class CertificateController extends Controller
             abort(403);
         }
 
+        // Check if event has a survey and user has not filled it
+        if ($isOwner && !$isManagement) {
+            $survey = $certificate->event->survey;
+            if ($survey) {
+                $hasResponded = \App\Models\SurveyResponse::where('survey_id', $survey->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
+                
+                if (!$hasResponded) {
+                    return redirect()->route('surveys.show', $certificate->event_id)
+                        ->with('info', 'Please complete the satisfaction survey before downloading your certificate.');
+                }
+            }
+        }
+
         $certificate->load(['user', 'event']);
 
         ini_set('memory_limit', '1G');

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Event extends Model
 {
@@ -77,6 +78,16 @@ class Event extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(Revision::class);
+    }
+
+    public function survey(): HasOne
+    {
+        return $this->hasOne(Survey::class);
+    }
+
+    public function requirements(): HasMany
+    {
+        return $this->hasMany(EventRequirement::class);
     }
 
     public function acceptedParticipants(): HasMany

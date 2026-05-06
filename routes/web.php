@@ -122,4 +122,17 @@ Route::middleware(['auth'])->group(function () {
     // Lecturer Signature
     Route::get('/profile/signature', [DashboardController::class, 'signatureForm'])->name('profile.signature');
     Route::post('/profile/signature', [DashboardController::class, 'saveSignature'])->name('profile.signature.save');
+
+    // Surveys & Requirements (Organizer)
+    Route::get('/events/{event}/survey/manage', [\App\Http\Controllers\SurveyController::class, 'manageSurvey'])->name('surveys.manage');
+    Route::post('/events/{event}/survey/manage', [\App\Http\Controllers\SurveyController::class, 'saveSurvey'])->name('surveys.save');
+    Route::get('/events/{event}/requirements/manage', [\App\Http\Controllers\SurveyController::class, 'manageRequirements'])->name('surveys.requirements.manage');
+    Route::post('/events/{event}/requirements/manage', [\App\Http\Controllers\SurveyController::class, 'saveRequirements'])->name('surveys.requirements.save');
+
+    // Surveys & Requirements (Participant)
+    Route::get('/events/{event}/requirements', [\App\Http\Controllers\SurveyController::class, 'showRequirements'])->name('surveys.requirements.show');
+    Route::post('/events/{event}/requirements', [\App\Http\Controllers\SurveyController::class, 'submitRequirements'])->name('surveys.requirements.submit');
+    Route::get('/events/{event}/survey', [\App\Http\Controllers\SurveyController::class, 'showSurvey'])->name('surveys.show');
+    Route::post('/events/{event}/survey', [\App\Http\Controllers\SurveyController::class, 'submitSurvey'])->name('surveys.submit');
+    Route::get('/surveys/thank-you/{certificate}', [\App\Http\Controllers\SurveyController::class, 'thankYou'])->name('surveys.thank_you');
 });

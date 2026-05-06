@@ -138,6 +138,8 @@
                 <a href="{{ route('attendance.generate', $event) }}" class="btn btn-outline"><i class="fas fa-qrcode"></i> Attendance</a>
                 <a href="{{ route('reports.create', $event) }}" class="btn btn-outline"><i class="fas fa-file-alt"></i> Create Report</a>
                 <a href="{{ route('certificates.manage', $event) }}" class="btn btn-outline"><i class="fas fa-award"></i> Certificates</a>
+                <a href="{{ route('surveys.manage', $event) }}" class="btn btn-outline"><i class="fas fa-poll"></i> Manage Survey</a>
+                <a href="{{ route('surveys.requirements.manage', $event) }}" class="btn btn-outline"><i class="fas fa-tasks"></i> Requirements</a>
             @endif
 
             {{-- Head Approval Actions --}}

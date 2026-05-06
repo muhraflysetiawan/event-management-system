@@ -49,6 +49,11 @@ class ParticipantController extends Controller
             return back()->with('error', 'This event is not open for registration.');
         }
 
+        // Check if event has conditional requirements
+        if ($event->requirements()->exists()) {
+            return redirect()->route('surveys.requirements.show', $event);
+        }
+
         $participant = Participant::create([
             'registration_number' => Participant::generateRegistrationNumber($event, $user),
             'user_id' => $user->id,
