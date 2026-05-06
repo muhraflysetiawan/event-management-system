@@ -10,8 +10,37 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
+use App\Exports\AttendanceExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class AttendanceController extends Controller
 {
+    public function exportPdf(Request $request)
+    {
+        $eventId = $request->get('event_id');
+        $query = Attendance::with(['user', 'event']);
+
+        if ($eventId) {
+            $query->where('event_id', $eventId);
+            $event = Event::find($eventId);
+            $title = "Attendance List - " . ($event ? $event->title : 'Event Not Found');
+        } else {
+            $title = "Attendance List - All Events";
+        }
+
+        $attendances = $query->latest()->get();
+
+        $pdf = Pdf::loadView('exports.attendance_pdf', compact('attendances', 'title'));
+        return $pdf->download('attendance-list.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $eventId = $request->get('event_id');
+        return Excel::download(new AttendanceExport($eventId), 'attendance-list.xlsx');
+    }
+
     public function generate(Event $event)
     {
         $participants = Participant::with(['user', 'user.attendances' => function($q) use ($event) {

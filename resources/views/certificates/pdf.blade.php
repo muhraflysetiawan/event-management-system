@@ -222,7 +222,19 @@
 
         <div class="content">
             <div class="header">CERTIFICATE</div>
-            <div class="sub-header">OF PARTICIPATION</div>
+            <div class="sub-header">
+                @if($certificate->type === 'winner')
+                    OF EXCELLENCE
+                @elseif($certificate->type === 'best_participant')
+                    OF BEST PARTICIPANT
+                @elseif($certificate->type === 'speaker')
+                    OF APPRECIATION
+                @elseif($certificate->type === 'moderator')
+                    OF APPRECIATION
+                @else
+                    OF PARTICIPATION
+                @endif
+            </div>
             
             <div class="presented-to">THIS CERTIFICATE IS PROUDLY PRESENTED TO</div>
             
@@ -243,7 +255,19 @@
             </div>
             
             <div class="description">
-                For their active participation and successful completion of the <br>
+                @if($certificate->type === 'winner')
+                    For their outstanding performance and being awarded as the <strong>{{ $certificate->achievement_title ?? 'Winner' }}</strong> of the <br>
+                @elseif($certificate->type === 'best_participant')
+                    For their exceptional engagement and being awarded as the <strong>{{ $certificate->achievement_title ?? 'Best Participant' }}</strong> of the <br>
+                @elseif($certificate->type === 'speaker')
+                    For their valuable contribution as a <strong>{{ $certificate->achievement_title ?? 'Speaker' }}</strong> in the <br>
+                @elseif($certificate->type === 'moderator')
+                    For their valuable contribution as a <strong>{{ $certificate->achievement_title ?? 'Moderator' }}</strong> in the <br>
+                @elseif($certificate->achievement_title)
+                    For their recognition as <strong>{{ $certificate->achievement_title }}</strong> in the <br>
+                @else
+                    For their active participation and successful completion of the <br>
+                @endif
                 <span class="event-name">{{ $certificate->event->title }}</span><br>
                 <span style="font-weight: normal; font-size: 16px;">{{ $certificate->certificate_number }}</span><br>
                 held on {{ $certificate->event->start_date->format('d F Y') }}.

@@ -151,4 +151,62 @@ class CertificateController extends Controller
             'Expires' => '0',
         ]);
     }
+    public function showCustomForm(Participant $participant)
+    {
+        $event = $participant->event;
+        $user = $participant->user;
+        
+        $types = [
+            'winner' => 'Winner',
+            'best_participant' => 'Best Participant',
+            'runner_up' => 'Runner Up',
+            'honorable_mention' => 'Honorable Mention',
+            'speaker' => 'Speaker',
+            'moderator' => 'Moderator',
+        ];
+
+        return view('certificates.custom', compact('participant', 'event', 'user', 'types'));
+    }
+
+    public function storeCustom(Request $request, Participant $participant)
+    {
+        $request->validate([
+            'type' => 'required|string',
+            'achievement_title' => 'nullable|string|max:255',
+        ]);
+
+        $event = $participant->event;
+        $user = $participant->user;
+
+        // Check if event has certificate design
+        if (!$event->certificate_template || !$event->lecturer_id || !$event->organizer_signature) {
+            return back()->with('error', 'Please configure the certificate design for this event first.');
+        }
+
+        // Generate certificate number with type suffix to avoid duplication in number if needed
+        // but here we just use the default logic and it will be unique because of the type in DB
+        $certificateNumber = Certificate::generateCertificateNumber($event->id);
+        
+        // Add a suffix for custom certificates
+        $typeSuffix = strtoupper(substr($request->type, 0, 3));
+        $certificateNumber .= "/{$typeSuffix}";
+
+        $certificate = Certificate::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+                'type' => $request->type,
+            ],
+            [
+                'certificate_number' => $certificateNumber,
+                'achievement_title' => $request->achievement_title,
+                'status' => 'available',
+            ]
+        );
+
+        NotificationService::notifyCustomCertificate($user, $event, $request->type);
+
+        return redirect()->route('participants.index', ['event_id' => $event->id])
+            ->with('success', "Custom certificate ({$request->type}) issued to {$user->name} successfully!");
+    }
 }

@@ -18,6 +18,13 @@
         <div style="padding:1.5rem; text-align:center;">
             <h3 style="font-weight:800; font-size:1.125rem; margin-bottom:0.5rem; color:var(--text-primary);">{{ $cert->event->title }}</h3>
             <div style="display:flex; flex-direction:column; gap:0.25rem; margin-bottom:1.25rem;">
+                @if($cert->type !== 'participation')
+                    <div style="margin-bottom: 0.5rem;">
+                        <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                            {{ $cert->achievement_title ?: str_replace('_', ' ', $cert->type) }}
+                        </span>
+                    </div>
+                @endif
                 <span style="color:var(--text-muted); font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Certificate #{{ $cert->certificate_number }}</span>
                 <span style="color:var(--text-muted); font-size:0.8125rem;">Earned on {{ $cert->created_at->format('M d, Y') }}</span>
             </div>

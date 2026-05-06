@@ -22,6 +22,16 @@
                 </select>
             </div>
         </form>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-bottom:1.5rem;">
+            <a href="{{ route('attendance.export.pdf', request()->all()) }}" class="btn btn-outline" style="border-color:#ef4444; color:#ef4444;">
+                <i class="fas fa-file-pdf"></i> Export Attendance (PDF)
+            </a>
+            <a href="{{ route('attendance.export.excel', request()->all()) }}" class="btn btn-outline" style="border-color:#10b981; color:#10b981;">
+                <i class="fas fa-file-excel"></i> Export Attendance (Excel)
+            </a>
+        </div>
+
         <div class="table-container" style="border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
             <table class="table">
             <thead>
@@ -51,6 +61,12 @@
                                 <input type="hidden" name="status" value="rejected">
                                 <button class="btn btn-sm btn-danger" title="Reject"><i class="fas fa-times"></i></button>
                             </form>
+                        </div>
+                        @elseif($reg->status === 'accepted')
+                        <div class="action-group">
+                            <a href="{{ route('certificates.custom', $reg) }}" class="btn btn-sm btn-primary" title="Issue Special Certificate">
+                                <i class="fas fa-award"></i> Special Cert
+                            </a>
                         </div>
                         @else
                         <span style="color:var(--text-muted);">—</span>

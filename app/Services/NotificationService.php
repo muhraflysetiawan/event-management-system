@@ -131,6 +131,18 @@ class NotificationService
         );
     }
 
+    public static function notifyCustomCertificate(User $user, Event $event, string $type): void
+    {
+        $typeName = str_replace('_', ' ', ucfirst($type));
+        self::send(
+            $user,
+            "Congratulations! Special Certificate for {$event->title}",
+            "Congratulations! You have been awarded a special certificate as \"{$typeName}\" for your participation in \"{$event->title}\". Check your certificates tab!",
+            'certificate',
+            $event
+        );
+    }
+
     public static function notifyEventReminder(User $user, Event $event): void
     {
         self::send(

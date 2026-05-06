@@ -68,6 +68,8 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/participants/{participant}/status', [ParticipantController::class, 'updateStatus'])->name('participants.updateStatus');
 
         // Attendance management
+        Route::get('/participants/export/pdf', [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf');
+        Route::get('/participants/export/excel', [AttendanceController::class, 'exportExcel'])->name('attendance.export.excel');
         Route::get('/events/{event}/attendance/generate', [AttendanceController::class, 'generate'])->name('attendance.generate');
         Route::post('/events/{event}/attendance/toggle', [AttendanceController::class, 'toggleStatus'])->name('attendance.toggle');
         Route::get('/events/{event}/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
@@ -84,6 +86,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/events/{event}/certificates/design', [CertificateController::class, 'design'])->name('certificates.design');
         Route::post('/events/{event}/certificates/design', [CertificateController::class, 'saveDesign'])->name('certificates.saveDesign');
         Route::post('/events/{event}/certificates/activate', [CertificateController::class, 'activate'])->name('certificates.activate');
+        Route::get('/participants/{participant}/custom-certificate', [CertificateController::class, 'showCustomForm'])->name('certificates.custom');
+        Route::post('/participants/{participant}/custom-certificate', [CertificateController::class, 'storeCustom'])->name('certificates.custom.store');
     });
 
     // Attendance check-in (for students)

@@ -26,7 +26,14 @@
             <tbody>
                 @forelse($certificates as $cert)
                 <tr>
-                    <td style="font-weight:600;color:var(--text-primary);">{{ $cert->user->name }}</td>
+                    <td style="font-weight:600;color:var(--text-primary);">
+                        {{ $cert->user->name }}
+                        @if($cert->type !== 'participation')
+                            <div style="font-size: 0.7rem; color: #92400e; background: #fef3c7; display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.5rem; text-transform: uppercase;">
+                                {{ $cert->achievement_title ?: str_replace('_', ' ', $cert->type) }}
+                            </div>
+                        @endif
+                    </td>
                     <td>{{ $cert->user->email }}</td>
                     <td><code style="color:var(--primary-400);">{{ $cert->certificate_number }}</code></td>
                     <td><span class="badge-status badge-{{ $cert->status }}">{{ ucfirst($cert->status) }}</span></td>
