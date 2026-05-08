@@ -167,42 +167,20 @@
             z-index: 0 !important;
         }
 
-        /* ═══════════ GLOBAL BUTTON RED OUTLINE STYLE ═══════════ */
-        a.btn, button, input[type="button"], input[type="submit"], .btn {
-            background: transparent !important;
-            color: #980517 !important;
-            border: 1px solid #980517 !important;
-            font-weight: 700 !important;
-            transition: all 0.3s ease !important;
-            padding: 0.5rem 1.25rem !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-        }
 
-        a.btn:hover, button:hover, input[type="submit"]:hover, .btn:hover {
-            background: #980517 !important;
-            color: #FFFFFF !important;
-        }
-
-        a.btn i, button i {
-            color: #980517 !important;
-            transition: all 0.3s ease !important;
-        }
+        /* ═══════════ GLOBAL ICON COLOR ═══════════ */
+        /* Icons inside buttons/topbar/sidebar inherit parent color */
+        .topbar i, .sidebar i { color: inherit; }
+        a.btn:hover i, button:hover i { color: inherit; }
 
         /* Exception for Nav Toggles */
         .menu-toggle i, .sidebar-close i {
             color: #FFFFFF !important;
         }
 
-        a.btn:hover i, button:hover i {
-            color: #FFFFFF !important;
-        }
-
-        /* ═══════════ GLOBAL ALERT STYLE ═══════════ */
+        /* ═══════════ ALERT OVERRIDES ═══════════ */
+        /* Only set base border-radius, individual classes handle colors */
         .alert {
-            background: rgba(152, 5, 23, 0.05) !important;
-            border: 1px solid rgba(152, 5, 23, 0.3) !important;
-            color: #980517 !important;
             border-radius: 12px !important;
             padding: 1rem 1.25rem !important;
             margin-bottom: 1.5rem !important;
@@ -211,8 +189,10 @@
             gap: 0.75rem !important;
             font-weight: 600 !important;
         }
-        .alert-success { background: rgba(16, 185, 129, 0.05) !important; border-color: rgba(16, 185, 129, 0.2) !important; color: #059669 !important; }
-        .alert-warning { background: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.2) !important; color: #d97706 !important; }
+        .alert-success { background: rgba(16, 185, 129, 0.08) !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; color: #059669 !important; }
+        .alert-warning { background: rgba(245, 158, 11, 0.08) !important; border: 1px solid rgba(245, 158, 11, 0.3) !important; color: #d97706 !important; }
+        .alert-error   { background: rgba(239, 68, 68, 0.08)  !important; border: 1px solid rgba(239, 68, 68, 0.3)  !important; color: #dc2626 !important; }
+        .alert-info    { background: rgba(6, 182, 212, 0.08)  !important; border: 1px solid rgba(6, 182, 212, 0.3)  !important; color: #0891b2 !important; }
 
         /* Custom Modal Style */
         .modal-overlay {

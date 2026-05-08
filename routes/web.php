@@ -63,7 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my-participants', [ParticipantController::class, 'myParticipants'])->name('participants.my');
 
     // Admin/Committee routes
-    Route::middleware('role:admin,committee,head_csdl,head_baak,head_finance,head_gsd,head_sis,head_learning,acoo')->group(function () {
+    Route::middleware('role:admin,committee,external,head_csdl,head_baak,head_finance,head_gsd,head_sis,head_learning,acoo')->group(function () {
         Route::get('/participants', [ParticipantController::class, 'index'])->name('participants.index');
         Route::patch('/participants/{participant}/status', [ParticipantController::class, 'updateStatus'])->name('participants.updateStatus');
 
@@ -101,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     Route::get('/api/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');

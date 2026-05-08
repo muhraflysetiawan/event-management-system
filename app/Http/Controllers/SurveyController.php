@@ -96,6 +96,21 @@ class SurveyController extends Controller
         
         $totalResponses = $survey->responses()->distinct('user_id')->count();
 
+        $userScores = $survey->responses()
+            ->whereHas('question', fn($q) => $q->where('type', 'scale'))
+            ->get()
+            ->groupBy('user_id')
+            ->map(fn($responses) => $responses->avg('answer'));
+
+        foreach ($survey->questions as $question) {
+            if ($question->type === 'text') {
+                $sortedResponses = $question->responses->sortBy(function($response) use ($userScores) {
+                    return $userScores->get($response->user_id) ?? 5;
+                })->values();
+                $question->setRelation('responses', $sortedResponses);
+            }
+        }
+
         return view('surveys.results', compact('event', 'survey', 'totalResponses'));
     }
 

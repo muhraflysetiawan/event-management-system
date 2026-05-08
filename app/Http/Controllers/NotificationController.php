@@ -20,6 +20,16 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications'));
     }
 
+    public function show(Notification $notification)
+    {
+        if ($notification->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $notification->update(['is_read' => true]);
+        return redirect($notification->url);
+    }
+
     public function markAsRead(Notification $notification)
     {
         if ($notification->user_id !== auth()->id()) {

@@ -95,7 +95,7 @@
                                 @foreach($lecturers as $lecturer)
                                     <option value="{{ $lecturer->id }}" 
                                             data-name="{{ $lecturer->name }}" 
-                                            data-sig="{{ $lecturer->signature ? asset('storage/' . $lecturer->signature) : '' }}"
+                                            data-sig="{{ $lecturer->signature ?? '' }}"
                                             {{ $event->lecturer_id == $lecturer->id ? 'selected' : '' }}>
                                         {{ $lecturer->name }} {{ !$lecturer->signature ? '(No Signature Uploaded)' : '' }}
                                     </option>

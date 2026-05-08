@@ -27,4 +27,20 @@ class Notification extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
+    public function getUrlAttribute(): string
+    {
+        if ($this->type === 'certificate') {
+            return route('certificates.index');
+        }
+
+        if ($this->event_id) {
+            if ($this->type === 'event' && str_contains($this->title, 'Approval Request')) {
+                return route('events.approvals');
+            }
+            return route('events.show', $this->event_id);
+        }
+
+        return route('dashboard');
+    }
 }

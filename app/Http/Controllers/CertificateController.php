@@ -45,6 +45,7 @@ class CertificateController extends Controller
 
         $templates = ['certi1.png', 'certi2.png', 'certi3.png'];
 
+        $event->load(['lecturer', 'creator']);
         return view('certificates.design', compact('event', 'lecturers', 'templates'));
     }
 
@@ -114,7 +115,7 @@ class CertificateController extends Controller
         
         // Allow if: owner, admin, committee, or head department
         $isOwner = $certificate->user_id === $user->id;
-        $isManagement = $user->isAdmin() || $user->isCommittee() || $user->isHeadDepartment();
+        $isManagement = $user->isAdmin() || $user->isCommittee() || $user->isHeadDepartment() || $user->isExternal();
 
         if (!$isOwner && !$isManagement) {
             abort(403);
@@ -135,7 +136,11 @@ class CertificateController extends Controller
             }
         }
 
-        $certificate->load(['user', 'event']);
+        $certificate->load(['user', 'event.lecturer', 'event.creator']);
+
+        if (!$certificate->event->certificate_template) {
+            return back()->with('error', 'Certificate template is not configured.');
+        }
 
         ini_set('memory_limit', '1G');
         ini_set('max_execution_time', 300);

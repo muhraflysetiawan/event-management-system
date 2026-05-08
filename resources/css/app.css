@@ -596,12 +596,13 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     gap: 0.375rem;
 }
 
+/* Icons default to brand color, except inside special containers */
 i { color: #980517; }
-.topbar i, .sidebar i, .btn i, .event-card-premium i { color: inherit; }
+.topbar i, .sidebar i, .btn i, .event-card-premium i, .nav-link.active i { color: inherit; }
 
 /* Role & Status Badges (already defined later) */
 
-.btn-primary, .btn-success {
+.btn-primary {
     background: #980517 !important;
     border-color: #980517 !important;
     color: white !important;
@@ -617,8 +618,6 @@ i { color: #980517; }
     color: white !important;
 }
 
-i { color: #980517; }
-.topbar i, .sidebar i, .btn i { color: inherit; }
 
 /* ═══════════ NOTIFICATION ═══════════ */
 .notification-item {
@@ -1462,7 +1461,9 @@ i { color: #980517; }
 .badge-external { background: rgba(107, 114, 128, 0.1); color: #4b5563; border: 1px solid rgba(107, 114, 128, 0.2); }
 
 .badge-draft, .status-badge.draft { background: rgba(107, 114, 128, 0.1); color: #4b5563; border: 1px solid rgba(107, 114, 128, 0.2); }
+.badge-pending_approval, .badge-pending { background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); }
 .badge-published, .status-badge.published { background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2); }
+.badge-ongoing { background: rgba(59, 130, 246, 0.1); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.2); }
 .badge-approved, .status-badge.approved { background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); }
 .badge-rejected, .badge-cancelled, .status-badge.rejected, .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); }
 .badge-completed, .status-badge.completed { background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.2); }

@@ -23,20 +23,27 @@ class EventController extends Controller
 
         if (auth()->check()) {
             $user = auth()->user();
-            if (!$user->isAdmin() && !$user->isCommittee() && !$user->isHeadDepartment() && !$user->isACOO()) {
-                if ($user->role) {
-                    $query->whereJsonContains('target_audience', $user->role->slug);
-                }
-            }
-
-            // Filter pending_approval events for Head roles/Admins
-            if ($user->isAdmin() || $user->isHeadDepartment() || $user->isACOO()) {
+            
+            if ($user->isStudent() || $user->isExternal()) {
+                // Participants (Student/External) only see published+ events that target them
+                // UNLESS they are the creator (for External)
                 $query->where(function($q) use ($user) {
-                    $q->where('status', '!=', 'pending_approval')
-                      ->orWhereJsonContains('required_approval_roles', $user->role->slug)
-                      ->orWhere('created_by', $user->id); // Always show if I created it
+                    $q->where(function($sq) use ($user) {
+                        $sq->whereIn('status', ['published', 'ongoing', 'completed'])
+                           ->whereJsonContains('target_audience', $user->role->slug);
+                    })->orWhere('created_by', $user->id);
+                });
+            } else {
+                // Management roles (Admin, Committee, Head, Staff, Lecturer)
+                $query->where(function($q) use ($user) {
+                    $q->whereIn('status', ['published', 'ongoing', 'completed'])
+                      ->orWhere('created_by', $user->id) // Always see own
+                      ->orWhereJsonContains('required_approval_roles', $user->role->slug ?? ''); // See if I need to approve
                 });
             }
+        } else {
+            // Guests only see published/ongoing
+            $query->whereIn('status', ['published', 'ongoing', 'completed']);
         }
 
         $events = $query->latest()->paginate(12);
