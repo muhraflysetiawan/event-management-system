@@ -60,7 +60,6 @@
                 <th>Email</th>
                 <th>Event</th>
                 <th>Checked In At</th>
-                <th>IP Address</th>
             </tr>
         </thead>
         <tbody>
@@ -71,7 +70,6 @@
                 <td>{{ $att->user->email }}</td>
                 <td>{{ $att->event->title }}</td>
                 <td>{{ $att->checked_in_at->format('d M Y, H:i') }}</td>
-                <td>{{ $att->ip_address }}</td>
             </tr>
             @endforeach
         </tbody>

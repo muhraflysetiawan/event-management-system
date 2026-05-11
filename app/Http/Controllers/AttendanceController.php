@@ -58,7 +58,7 @@ class AttendanceController extends Controller
         $status = $request->input('status'); // 'open' or 'close'
 
         if ($status === 'open') {
-            $token = $event->qr_token ?: Str::random(32);
+            $token = $event->qr_token ?: Str::random(10);
             $event->update([
                 'is_attendance_open' => true,
                 'qr_token' => $token,
@@ -96,8 +96,8 @@ class AttendanceController extends Controller
             return view('attendance.result', ['success' => false, 'message' => 'Invalid QR code.']);
         }
 
-        if (!$event->is_attendance_open) {
-            return view('attendance.result', ['success' => false, 'message' => 'Attendance is currently CLOSED by the committee.']);
+        if (!$event->is_attendance_open || $event->status === 'completed') {
+            return view('attendance.result', ['success' => false, 'message' => 'Attendance is currently CLOSED or the event has ended.']);
         }
 
         return view('attendance.confirm', compact('event', 'token'));
@@ -116,8 +116,8 @@ class AttendanceController extends Controller
             return back()->with('error', 'Invalid QR code.');
         }
 
-        if (!$event->is_attendance_open) {
-            return back()->with('error', 'Attendance is currently CLOSED by the committee.');
+        if (!$event->is_attendance_open || $event->status === 'completed') {
+            return back()->with('error', 'Attendance is currently CLOSED or the event has ended.');
         }
 
         // Check if user is registered and accepted

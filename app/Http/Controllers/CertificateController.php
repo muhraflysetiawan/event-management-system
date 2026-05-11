@@ -94,16 +94,14 @@ class CertificateController extends Controller
             return back()->with('error', 'No accepted participants found for this event. Certificates cannot be generated.');
         }
 
-        foreach ($acceptedParticipants as $participant) {
-            $existing = Certificate::where('user_id', $participant->user_id)
-                ->where('event_id', $event->id)
-                ->first();
+        // Update all pending certificates for this event to available
+        Certificate::where('event_id', $event->id)
+            ->where('status', 'pending')
+            ->update(['status' => 'available']);
 
-            if ($existing && $existing->status === 'pending') {
-                $existing->update(['status' => 'available']);
-                // Notify user ONLY if they actually got a certificate
-                NotificationService::notifyCertificateAvailable($participant->user, $event);
-            }
+        // Notify participants
+        foreach ($acceptedParticipants as $participant) {
+            NotificationService::notifyCertificateAvailable($participant->user, $event);
         }
 
         return back()->with('success', 'Certificates activated and notifications sent!');

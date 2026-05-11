@@ -69,29 +69,32 @@
             </div>
         </div>
 
-        {{-- ─── Approval Progress (only for creator/admin while pending) ─── --}}
+        {{-- ─── Approval Progress Visualization (Bar per role) ─── --}}
         @if(($isAdmin || $isCreator) && $isPending)
-        <div style="margin-bottom: 1.5rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div class="detail-label" style="margin-bottom: 0.75rem; font-size: 0.8rem;">
-                <i class="fas fa-tasks" style="color: #980517; margin-right: 0.4rem;"></i> Approval Progress
+        <div style="margin-bottom: 2rem;">
+            <div class="detail-label" style="margin-bottom: 0.75rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-tasks" style="color: #980517; margin-right: 0.4rem;"></i> Approval Progress</span>
+                <span style="font-weight: 700; color: #980517;">{{ count($event->approved_by_roles ?? []) }} / {{ count($event->required_approval_roles ?? []) }} Approved</span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <div style="display: flex; gap: 0.6rem; width: 100%; height: 10px; margin-bottom: 0.75rem;">
+                @foreach($event->required_approval_roles ?? [] as $roleSlug)
+                    @php
+                        $roleApproved = in_array($roleSlug, $event->approved_by_roles ?? []);
+                    @endphp
+                    <div style="flex: 1; height: 100%; background: {{ $roleApproved ? '#059669' : '#e5e7eb' }}; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);" 
+                         title="{{ ucfirst(str_replace('_', ' ', $roleSlug)) }}: {{ $roleApproved ? 'Approved' : 'Pending' }}">
+                    </div>
+                @endforeach
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
                 @foreach($event->required_approval_roles ?? [] as $roleSlug)
                     @php
                         $roleApproved = in_array($roleSlug, $event->approved_by_roles ?? []);
                         $roleName = ucfirst(str_replace('_', ' ', $roleSlug));
                     @endphp
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500;">{{ $roleName }}</span>
-                        @if($roleApproved)
-                            <span style="font-size: 0.8rem; font-weight: 700; color: #059669; display: flex; align-items: center; gap: 0.3rem;">
-                                <i class="fas fa-check-circle" style="color: inherit;"></i> Approved
-                            </span>
-                        @else
-                            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem;">
-                                <i class="fas fa-hourglass-half" style="color: inherit;"></i> Pending
-                            </span>
-                        @endif
+                    <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600; color: {{ $roleApproved ? '#059669' : 'var(--text-muted)' }};">
+                        <i class="fas {{ $roleApproved ? 'fa-check-circle' : 'fa-circle' }}" style="color: inherit; font-size: 0.65rem;"></i>
+                        {{ $roleName }}
                     </div>
                 @endforeach
             </div>
@@ -99,15 +102,15 @@
         @endif
 
         {{-- ─── Description ─── --}}
-        <div style="margin-bottom: 1.5rem;">
-            <div class="detail-label" style="margin-bottom: 0.5rem;">Description</div>
+        <div style="margin-bottom: 2.5rem;">
+            <div class="detail-label" style="margin-bottom: 0.75rem;">Description</div>
             <div style="color: var(--text-secondary); line-height: 1.8; white-space: pre-line; overflow-wrap: break-word;">{{ $event->description }}</div>
         </div>
 
         {{-- ─── Project Brief (management only) ─── --}}
         @if((auth()->user()->isAdmin() || auth()->user()->isCommittee() || auth()->user()->isHeadDepartment() || auth()->user()->isACOO() || $isCreator) && ($event->project_brief || $event->project_brief_pdf))
-        <div style="margin-bottom: 1.5rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="margin-bottom: 2.5rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div class="detail-label" style="margin-bottom: 0;">
                     <i class="fas fa-file-signature" style="color: #980517; margin-right: 0.4rem;"></i> Project Brief
                 </div>
@@ -125,12 +128,12 @@
 
         {{-- ─── Materials ─── --}}
         @if($event->materials->count() > 0)
-        <div style="margin-bottom: 1.5rem;">
-            <div class="detail-label" style="margin-bottom: 0.75rem;">Materials</div>
-            <div class="detail-grid">
+        <div style="margin-bottom: 2.5rem;">
+            <div class="detail-label" style="margin-bottom: 1rem;">Materials</div>
+            <div class="detail-grid" style="gap: 1.5rem;">
                 @foreach($event->materials as $material)
-                <div class="detail-item" style="border-left: 3px solid #980517;">
-                    <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">{{ $material->title }}</div>
+                <div class="detail-item" style="border-left: 3px solid #980517; padding-left: 1rem;">
+                    <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">{{ $material->title }}</div>
                     <div style="color: var(--text-secondary); font-size: 0.875rem;">{{ $material->description }}</div>
                 </div>
                 @endforeach
@@ -139,7 +142,7 @@
         @endif
 
         {{-- ─── Action Buttons ─── --}}
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-color); margin-top: 0.5rem;">
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--border-color); margin-top: 0.5rem; align-items: center;">
             <a href="{{ route('events.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back
             </a>
@@ -153,7 +156,7 @@
             {{-- Creator/Admin: cancel or post while pending --}}
             @if(($isCreator || $isAdmin) && $isPending)
                 @if($isFullyApproved)
-                    <form method="POST" action="{{ route('events.publish', $event) }}">
+                    <form method="POST" action="{{ route('events.publish', $event) }}" id="publish-section">
                         @csrf
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i> Post Event

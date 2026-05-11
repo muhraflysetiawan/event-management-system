@@ -38,6 +38,9 @@ class Notification extends Model
             if ($this->type === 'event' && str_contains($this->title, 'Approval Request')) {
                 return route('events.approvals');
             }
+            if ($this->type === 'event' && str_contains($this->title, 'Fully Approved')) {
+                return route('events.show', $this->event_id) . '#publish-section';
+            }
             return route('events.show', $this->event_id);
         }
 

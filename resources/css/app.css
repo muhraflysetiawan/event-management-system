@@ -62,7 +62,8 @@
     --spacing-md: 1.5rem;
     --spacing-lg: 2rem;
     --spacing-xl: 3rem;
-    --grid-gap: 1.5rem;
+    --grid-gap: 2rem;
+    --spacing-card-mb: 2rem;
 
     /* Spacing & Radius */
     --radius-sm: 8px;

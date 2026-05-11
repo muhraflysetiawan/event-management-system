@@ -38,7 +38,6 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping
             'Email',
             'Event Title',
             'Checked In At',
-            'IP Address',
         ];
     }
 
@@ -50,7 +49,6 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping
             $attendance->user->email,
             $attendance->event->title,
             $attendance->checked_in_at->format('Y-m-d H:i:s'),
-            $attendance->ip_address,
         ];
     }
 }

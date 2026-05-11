@@ -70,15 +70,17 @@
                 @endif
             </div>
 
-            <button type="button" id="add-question" class="btn btn-outline mb-4"><i class="fas fa-plus"></i> Add Question</button>
-
-            <div class="action-group" style="justify-content: flex-end; gap: 1rem;">
-                @if(isset($survey))
-                    <a href="{{ route('surveys.results', $event) }}" class="btn btn-outline" style="border-color: #f59e0b; color: #f59e0b;"><i class="fas fa-chart-pie"></i> View Results</a>
-                    <a href="{{ route('surveys.report', $event) }}" class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6;"><i class="fas fa-file-medical-alt"></i> View Report</a>
-                @endif
-                <a href="{{ route('events.show', $event) }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save Survey</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <button type="button" id="add-question" class="btn btn-outline" style="background: #980517; color: white; border-color: #980517; margin-bottom: 0;"><i class="fas fa-plus"></i> Add Question</button>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                    @if(isset($survey))
+                        <a href="{{ route('surveys.results', $event) }}" class="btn" style="background: #f59e0b; color: white; border-radius: var(--radius-sm);"><i class="fas fa-chart-pie"></i> View Results</a>
+                        <a href="{{ route('surveys.report', $event) }}" class="btn" style="background: #8b5cf6; color: white; border-radius: var(--radius-sm);"><i class="fas fa-file-medical-alt"></i> View Report</a>
+                    @endif
+                    <a href="{{ route('events.show', $event) }}" class="btn btn-secondary" style="color: white;">Cancel</a>
+                    <button type="submit" class="btn btn-primary" style="color: white;">Save Survey</button>
+                </div>
             </div>
         </form>
     </div>

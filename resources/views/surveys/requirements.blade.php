@@ -41,11 +41,13 @@
                 @endif
             </div>
 
-            <button type="button" id="add-requirement" class="btn btn-outline mb-4"><i class="fas fa-plus"></i> Add Question</button>
-
-            <div class="action-group" style="justify-content: flex-end;">
-                <a href="{{ route('events.show', $event) }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save Requirements</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <button type="button" id="add-requirement" class="btn btn-outline" style="background: #980517; color: white; border-color: #980517; margin-bottom: 0;"><i class="fas fa-plus"></i> Add Question</button>
+                
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="{{ route('events.show', $event) }}" class="btn btn-secondary" style="color: white;">Cancel</a>
+                    <button type="submit" class="btn btn-primary" style="color: white;">Save Requirements</button>
+                </div>
             </div>
         </form>
     </div>

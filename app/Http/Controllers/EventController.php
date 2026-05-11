@@ -185,6 +185,10 @@ class EventController extends Controller
             NotificationService::notifyApprovalRequest($event);
         }
 
+        if ($oldData['status'] !== 'completed' && $event->status === 'completed') {
+            \App\Models\Certificate::createPendingForEvent($event);
+        }
+        
         return redirect()->route('events.show', $event)
             ->with('success', 'Event updated successfully!');
     }
@@ -253,6 +257,7 @@ class EventController extends Controller
 
         if ($event->isFullyApproved() && $event->status === 'pending_approval') {
             $event->update(['status' => 'published']); // Changed from 'approved' to 'published'
+            \App\Services\NotificationService::notifyEventPublished($event);
             return back()->with('success', 'Event published successfully!');
         }
 
@@ -275,6 +280,12 @@ class EventController extends Controller
 
         if ($nextStatus) {
             $event->update(['status' => $nextStatus]);
+            
+            if ($nextStatus === 'completed') {
+                \App\Models\Certificate::createPendingForEvent($event);
+                $event->update(['is_attendance_open' => false]);
+            }
+            
             return back()->with('success', "Event status updated to " . ucfirst($nextStatus));
         }
 

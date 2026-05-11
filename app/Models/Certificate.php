@@ -72,4 +72,37 @@ class Certificate extends Model
         ];
         return $map[$number - 1] ?? 'I';
     }
+    
+    public static function createPendingForEvent(Event $event)
+    {
+        $isDesignReady = $event->certificate_template && $event->lecturer_id && $event->organizer_signature;
+        $newStatus = $isDesignReady ? 'available' : 'pending';
+        
+        $participants = $event->participants()->where('status', 'accepted')->get();
+        foreach ($participants as $participant) {
+            $cert = self::where('user_id', $participant->user_id)
+                        ->where('event_id', $event->id)
+                        ->where('type', 'participation')
+                        ->first();
+            
+            if ($cert) {
+                if ($cert->status === 'pending' && $isDesignReady) {
+                    $cert->update(['status' => 'available']);
+                    \App\Services\NotificationService::notifyCertificateAvailable($participant->user, $event);
+                }
+            } else {
+                $cert = self::create([
+                    'user_id' => $participant->user_id,
+                    'event_id' => $event->id,
+                    'type' => 'participation',
+                    'certificate_number' => self::generateCertificateNumber($event->id),
+                    'status' => $newStatus
+                ]);
+                
+                if ($newStatus === 'available') {
+                    \App\Services\NotificationService::notifyCertificateAvailable($participant->user, $event);
+                }
+            }
+        }
+    }
 }
