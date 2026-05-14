@@ -14,6 +14,7 @@ class Event extends Model
         'location', 'quota', 'status', 'is_attendance_open', 'created_by',
         'qr_code', 'qr_token', 'qr_expires_at',
         'certificate_template', 'lecturer_id', 'organizer_signature',
+        'head_id', 'head_signature', 'acoo_id', 'acoo_signature',
         'event_logo', 'target_audience', 'required_approval_roles',
         'approved_by_roles',
     ];
@@ -33,6 +34,16 @@ class Event extends Model
     public function lecturer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'lecturer_id');
+    }
+
+    public function head(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'head_id');
+    }
+
+    public function acoo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'acoo_id');
     }
 
     public function creator(): BelongsTo

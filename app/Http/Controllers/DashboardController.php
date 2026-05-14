@@ -14,7 +14,7 @@ class DashboardController extends Controller
     public function signatureForm()
     {
         $user = auth()->user();
-        if (!$user->isLecturer() && !$user->isAdmin()) {
+        if (!$user->isLecturer() && !$user->isAdmin() && !$user->isHeadDepartment() && !$user->isACOO()) {
             abort(403);
         }
         return view('profile.signature');
@@ -23,7 +23,7 @@ class DashboardController extends Controller
     public function saveSignature(Request $request)
     {
         $user = auth()->user();
-        if (!$user->isLecturer() && !$user->isAdmin()) {
+        if (!$user->isLecturer() && !$user->isAdmin() && !$user->isHeadDepartment() && !$user->isACOO()) {
             abort(403);
         }
 
@@ -50,6 +50,7 @@ class DashboardController extends Controller
                 'ongoingEvents' => Event::where('status', 'ongoing')->count(),
                 'recentEvents' => Event::latest()->take(5)->get(),
                 'recentParticipants' => Participant::with(['user', 'event'])->latest()->take(5)->get(),
+                'pendingFeedbackReports' => \App\Models\Report::whereNull('management_feedback')->latest()->get(),
                 'monthlyStats' => $this->getMonthlyStats(),
             ];
             return view('dashboard.admin', $data);
@@ -80,6 +81,7 @@ class DashboardController extends Controller
                         $q->whereNull('approved_by_roles')
                           ->orWhereJsonDoesntContain('approved_by_roles', $user->role->slug);
                     })->latest()->get(),
+                'pendingFeedbackReports' => \App\Models\Report::whereNull('management_feedback')->latest()->get(),
                 'approvalHistory' => \App\Models\ApprovalLog::where('approver_id', $user->id)->latest()->take(10)->get(),
             ];
             return view('dashboard.head', $data);

@@ -39,14 +39,16 @@ class CertificateController extends Controller
 
     public function design(Event $event)
     {
-        $lecturers = User::whereHas('role', function($q) {
-            $q->where('slug', 'lecturer');
+        $signingOfficials = User::whereHas('role', function($q) {
+            $q->whereIn('slug', ['lecturer', 'acoo'])
+              ->orWhere('slug', 'like', 'head_%');
         })->get();
 
         $templates = ['certi1.png', 'certi2.png', 'certi3.png'];
 
         $event->load(['lecturer', 'creator']);
-        return view('certificates.design', compact('event', 'lecturers', 'templates'));
+
+        return view('certificates.design', compact('event', 'signingOfficials', 'templates'));
     }
 
     public function saveDesign(Request $request, Event $event)
@@ -81,8 +83,8 @@ class CertificateController extends Controller
             return back()->with('error', 'Certificates can only be generated after the event is completed.');
         }
 
-        if (!$event->certificate_template || !$event->lecturer_id || !$event->organizer_signature) {
-            return back()->with('error', 'Please configure the certificate design first.');
+        if (!$event->certificate_template || !$event->lecturer_id) {
+            return back()->with('error', 'Please configure the certificate design (Template and Lecturer) first.');
         }
 
         $acceptedParticipants = Participant::with('user')
@@ -134,7 +136,7 @@ class CertificateController extends Controller
             }
         }
 
-        $certificate->load(['user', 'event.lecturer', 'event.creator']);
+        $certificate->load(['user', 'event.lecturer.role', 'event.creator']);
 
         if (!$certificate->event->certificate_template) {
             return back()->with('error', 'Certificate template is not configured.');

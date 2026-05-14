@@ -278,7 +278,7 @@
             <table class="signature-table">
                 <tr>
                     <td class="signature-cell">
-                        <div class="signature-label">Head of Department</div>
+                        <div class="signature-label">{{ $certificate->event->lecturer->role->name ?? 'Head of Department' }}</div>
                         <div class="signature-image-wrapper">
                             @if($certificate->event->lecturer && $certificate->event->lecturer->signature)
                                 <img class="signature-img" src="{{ getOptimizedBase64Image($certificate->event->lecturer->signature, 300) }}">

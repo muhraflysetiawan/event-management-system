@@ -83,6 +83,42 @@
     </div>
 </div>
 
+<!-- Reports Needing Feedback -->
+@if($pendingFeedbackReports->count() > 0)
+<div class="card mt-3">
+    <div class="card-header" style="background: #0284c7; color: white;">
+        <h3 class="card-title" style="color: white;"><i class="fas fa-comment-dots" style="margin-right:0.5rem;"></i> Reports Needing Feedback</h3>
+        <span class="badge-status" style="background: rgba(255,255,255,0.2); color: white;">{{ $pendingFeedbackReports->count() }} PENDING</span>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Report Title</th>
+                    <th>Event</th>
+                    <th>Organizer</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($pendingFeedbackReports as $report)
+                <tr>
+                    <td style="font-weight:600;">{{ $report->title }}</td>
+                    <td>{{ $report->event->title }}</td>
+                    <td>{{ $report->creator->name }}</td>
+                    <td>
+                        <a href="{{ route('reports.show', $report) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-pen"></i> Review & Feedback
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
 <!-- Recent Events -->
 <div class="card mt-3">
     <div class="card-header">

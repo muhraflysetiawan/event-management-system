@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/events/{event}/reports/create', [ReportController::class, 'create'])->name('reports.create');
         Route::post('/events/{event}/reports', [ReportController::class, 'store'])->name('reports.store');
         Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+        Route::post('/reports/{report}/feedback', [ReportController::class, 'submitFeedback'])->name('reports.feedback');
         Route::get('/reports/{report}/pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
         Route::get('/reports/{report}/excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
 

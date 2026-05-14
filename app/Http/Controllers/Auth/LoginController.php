@@ -23,12 +23,6 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
             
-            if (!$user->email_verified_at) {
-                Auth::logout();
-                $request->session()->put('verify_user_id', $user->id);
-                return redirect()->route('otp.verify')->with('error', 'Please verify your email with the OTP sent to you.');
-            }
-
             if (!$user->is_active) {
                 Auth::logout();
                 return back()->withErrors([

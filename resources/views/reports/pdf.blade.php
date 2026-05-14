@@ -60,6 +60,16 @@
 <h2>Report Content</h2>
 <div class="content">{!! nl2br(e($report->content)) !!}</div>
 
+@if($report->management_feedback)
+<div style="margin-top: 30px; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+    <h3 style="color: #166534; font-size: 14px; margin-top: 0; border-bottom: 1px solid #bbf7d0; padding-bottom: 5px;">Management Feedback</h3>
+    <div style="font-size: 11px; color: #14532d; margin-bottom: 8px;">
+        By <strong>{{ $report->feedbackBy->name }}</strong> on {{ $report->management_feedback_at->format('d M Y, H:i') }}
+    </div>
+    <div style="color: #14532d;">{!! nl2br(e($report->management_feedback)) !!}</div>
+</div>
+@endif
+
 <h2>Participants</h2>
 <table>
     <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Reg Number</th><th>Status</th></tr></thead>

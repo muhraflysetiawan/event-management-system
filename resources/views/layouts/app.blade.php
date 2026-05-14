@@ -304,7 +304,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" 
            :class="sidebarOpen ? 'sidebar-visible' : 'sidebar-hidden'" 
-           style="display: flex !important; position: fixed !important; height: 100dvh !important; top: 0 !important; left: 0 !important; z-index: 2000 !important; overflow: hidden !important;">
+           style="display: flex !important; position: fixed !important; height: 100dvh !important; top: 0 !important; left: 0 !important; z-index: 2000 !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;">
         <div class="sidebar-header">
             <div class="sidebar-logo">
                 @php $websiteLogo = \App\Models\Setting::get('website_logo'); @endphp
@@ -390,7 +390,7 @@
                 @endif
             @endif
 
-            @if(auth()->user()->isLecturer())
+            @if(auth()->user()->isLecturer() || auth()->user()->isHeadDepartment() || auth()->user()->isACOO())
                 <a href="{{ route('profile.signature') }}" class="nav-link {{ request()->routeIs('profile.signature') ? 'active' : '' }}">
                     <i class="fas fa-pen-nib"></i>
                     <span>My Signature</span>

@@ -10,6 +10,36 @@
             <div class="stat-label">Pending Your Approval</div>
         </div>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-comment-medical"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ $pendingFeedbackReports->count() }}</div>
+            <div class="stat-label">Reports Needing Feedback</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-5">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-comment-dots" style="color: #980517; margin-right: 0.5rem;"></i> Reports Needing Feedback</h3>
+    </div>
+    <div class="card-body">
+        <div class="events-grid">
+            @forelse($pendingFeedbackReports as $report)
+                <div class="event-card-premium" onclick="window.location='{{ route('reports.show', $report) }}'" style="cursor: pointer; background: linear-gradient(135deg, #0284c7, #06b6d4) !important;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <span class="badge-status" style="background: rgba(255,255,255,0.2) !important;">FEEDBACK REQUIRED</span>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #FFFFFF !important;">{{ $report->title }}</h3>
+                    <p style="font-size: 0.875rem; margin-bottom: 1.25rem; line-height: 1.5; color: #FFFFFF !important;">Event: {{ $report->event->title }}</p>
+                </div>
+            @empty
+                <div class="empty-state" style="padding: 1rem;">
+                    <p style="color: #6b7280;">There are no reports needing your feedback.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
 </div>
 
 <div class="card mb-5">

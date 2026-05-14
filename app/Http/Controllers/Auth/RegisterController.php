@@ -13,7 +13,7 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        $roles = Role::whereIn('slug', ['student', 'lecturer', 'staff', 'external', 'committee'])->get();
+        $roles = Role::whereIn('slug', ['student', 'lecturer'])->get();
         return view('auth.register', compact('roles'));
     }
 

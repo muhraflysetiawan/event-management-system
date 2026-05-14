@@ -35,14 +35,14 @@
                         </div>
 
                         <div style="display:flex; justify-content:space-between; width:85%; position:absolute; bottom:5.3cqw; left:7.5cqw;">
-                            <!-- Lecturer Signature -->
+                            <!-- Lecturer/Official Signature -->
                             <div style="text-align:center; width:45%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center;">
-                                <div style="font-family:Arial, Helvetica, sans-serif; font-size:0.98cqw; text-transform:uppercase; font-weight:bold; color:#444; margin-bottom:0.4cqw;">Head of Department</div>
+                                <div style="font-family:Arial, Helvetica, sans-serif; font-size:0.98cqw; text-transform:uppercase; font-weight:bold; color:#444; margin-bottom:0.4cqw;" id="preview-signer-label">Signing Official</div>
                                 <div style="height:7.13cqw; display:flex; align-items:flex-end; justify-content:center; margin-bottom:0.2cqw;">
                                     <img id="preview-lecturer-sig" src="" style="max-height:100%; display:none;">
                                 </div>
                                 <div style="border-top:1.5px solid #000; width:21.3cqw; margin:0 auto 0.4cqw;"></div>
-                                <div style="font-family:Arial, Helvetica, sans-serif; font-size:1.33cqw; font-weight:bold; color:#000;" id="preview-lecturer-name">Lecturer Name</div>
+                                <div style="font-family:Arial, Helvetica, sans-serif; font-size:1.33cqw; font-weight:bold; color:#000;" id="preview-lecturer-name">Official Name</div>
                             </div>
 
                             <!-- Organizer Signature -->
@@ -87,17 +87,18 @@
                     </div>
 
                     <div class="form-row mt-3">
-                        <!-- Lecturer Selection -->
+                        <!-- Signer Selection -->
                         <div class="form-group">
-                            <label class="form-label">Select Signing Lecturer</label>
-                            <select name="lecturer_id" class="form-input" required id="lecturer-select" onchange="updatePreviewLecturer(this)">
-                                <option value="">-- Select Lecturer --</option>
-                                @foreach($lecturers as $lecturer)
-                                    <option value="{{ $lecturer->id }}" 
-                                            data-name="{{ $lecturer->name }}" 
-                                            data-sig="{{ $lecturer->signature ?? '' }}"
-                                            {{ $event->lecturer_id == $lecturer->id ? 'selected' : '' }}>
-                                        {{ $lecturer->name }} {{ !$lecturer->signature ? '(No Signature Uploaded)' : '' }}
+                            <label class="form-label">Select Signing Official</label>
+                            <select name="lecturer_id" class="form-input" required id="lecturer-select" onchange="updatePreviewSigner(this)">
+                                <option value="">-- Select Official --</option>
+                                @foreach($signingOfficials as $user)
+                                    <option value="{{ $user->id }}" 
+                                            data-name="{{ $user->name }}" 
+                                            data-role="{{ $user->role->name }}"
+                                            data-sig="{{ $user->signature ?? '' }}"
+                                            {{ $event->lecturer_id == $user->id ? 'selected' : '' }}>
+                                        [{{ $user->role->name }}] {{ $user->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -108,6 +109,35 @@
                             <label class="form-label">Event Logo (Upload)</label>
                             <input type="file" name="event_logo" class="form-input" accept="image/*" onchange="updatePreviewLogo(this)">
                             <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.375rem;">Will be displayed on the top right.</p>
+                        </div>
+                    </div>
+
+                    <!-- Organizer Signature Pad/Upload -->
+                    <div class="form-group mt-3">
+                        <label class="form-label">Organizer Signature (Sign or Upload)</label>
+                        
+                        <div style="display:flex; gap:1rem; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
+                            <button type="button" class="tab-btn active" onclick="switchTab('draw')">Draw</button>
+                            <button type="button" class="tab-btn" onclick="switchTab('upload')">Upload Photo</button>
+                        </div>
+
+                        <div id="draw-section">
+                            <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); max-width:400px;">
+                                <canvas id="signature-pad" width="400" height="200" style="touch-action: none; cursor: default;"></canvas>
+                            </div>
+                            <div style="margin-top:0.5rem;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="clear-signature">Clear Signature</button>
+                            </div>
+                        </div>
+
+                        <div id="upload-section" style="display:none;">
+                            <input type="file" id="signature-upload" class="form-input" accept="image/*">
+                            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">
+                                <i class="fas fa-info-circle"></i> Use a plain white background.
+                            </p>
+                            <div id="preview-container" style="display:none; margin-top:1rem;">
+                                <canvas id="process-canvas" style="border:1px solid var(--border-color); max-width:100%; background:#eee;"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -218,18 +248,38 @@
         document.getElementById('preview-template').src = `{{ asset('assets/certificates/') }}/${val}`;
     }
 
-    function updatePreviewLecturer(select) {
+    function updatePreviewSigner(select) {
         const option = select.options[select.selectedIndex];
+        if (!option || !option.value) {
+            document.getElementById('preview-lecturer-name').innerText = 'Official Name';
+            document.getElementById('preview-lecturer-sig').style.display = 'none';
+            document.getElementById('preview-signer-label').innerText = 'Signing Official';
+            return;
+        }
+
         const name = option.getAttribute('data-name');
+        const role = option.getAttribute('data-role');
         const sig = option.getAttribute('data-sig');
         
-        document.getElementById('preview-lecturer-name').innerText = name || 'Lecturer Name';
+        document.getElementById('preview-lecturer-name').innerText = name;
+        document.getElementById('preview-signer-label').innerText = role;
+        
         const sigImg = document.getElementById('preview-lecturer-sig');
         if (sig) {
             sigImg.src = sig;
             sigImg.style.display = 'block';
         } else {
             sigImg.style.display = 'none';
+        }
+    }
+
+    function updatePreviewOrganizer(dataUrl) {
+        const img = document.getElementById('preview-organizer-sig');
+        if (dataUrl) {
+            img.src = dataUrl;
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
         }
     }
 
@@ -245,19 +295,9 @@
         }
     }
 
-    function updatePreviewOrganizer(dataUrl) {
-        const img = document.getElementById('preview-organizer-sig');
-        if (dataUrl) {
-            img.src = dataUrl;
-            img.style.display = 'block';
-        } else {
-            img.style.display = 'none';
-        }
-    }
-
     // Initialize preview
     window.addEventListener('load', () => {
-        updatePreviewLecturer(document.getElementById('lecturer-select'));
+        updatePreviewSigner(document.getElementById('lecturer-select'));
     });
 
     document.getElementById('clear-signature').addEventListener('click', () => {

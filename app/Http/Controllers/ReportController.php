@@ -46,13 +46,40 @@ class ReportController extends Controller
 
     public function show(Report $report)
     {
-        $report->load(['event', 'creator']);
+        $report->load(['event', 'creator', 'feedbackBy']);
         return view('reports.show', compact('report'));
+    }
+
+    public function submitFeedback(Request $request, Report $report)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->isACOO() && !$user->isHeadDepartment()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'management_feedback' => 'required|string',
+        ]);
+
+        $report->update([
+            'management_feedback' => $request->management_feedback,
+            'management_feedback_by' => $user->id,
+            'management_feedback_at' => now(),
+        ]);
+
+        return back()->with('success', 'Feedback submitted successfully!');
     }
 
     public function exportPdf(Report $report)
     {
-        $report->load(['event.participants.user', 'event.attendances.user', 'creator']);
+        $user = auth()->user();
+        $isOrganizer = $report->created_by === $user->id && !$user->isAdmin();
+        
+        if ($isOrganizer && !$report->management_feedback) {
+            return back()->with('error', 'You can only download the report after management feedback has been received.');
+        }
+
+        $report->load(['event.participants.user', 'event.attendances.user', 'creator', 'feedbackBy']);
         $attendances = Attendance::with('user')->where('event_id', $report->event_id)->get();
         $participants = Participant::with('user')->where('event_id', $report->event_id)->get();
 
@@ -62,6 +89,13 @@ class ReportController extends Controller
 
     public function exportExcel(Report $report)
     {
+        $user = auth()->user();
+        $isOrganizer = $report->created_by === $user->id && !$user->isAdmin();
+        
+        if ($isOrganizer && !$report->management_feedback) {
+            return back()->with('error', 'You can only download the report after management feedback has been received.');
+        }
+
         $report->load('event');
         
         if ($report->type === 'financial') {
