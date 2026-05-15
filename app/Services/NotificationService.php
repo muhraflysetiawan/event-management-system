@@ -153,4 +153,82 @@ class NotificationService
             $event
         );
     }
+
+    public static function notifyReportSubmitted(\App\Models\Report $report): void
+    {
+        $event = $report->event;
+        $creator = $report->creator;
+
+        // 1. Notify the organizer (pengirim)
+        if ($creator) {
+            self::send(
+                $creator,
+                'Report Submitted',
+                "Your report \"{$report->title}\" for event \"{$event->title}\" has been successfully submitted and is awaiting management feedback.",
+                'report',
+                $event
+            );
+        }
+
+        // 2. Notify management (Admin/Heads)
+        $managementRoles = $event->required_approval_roles ?? ['admin', 'acoo', 'head_csdl'];
+        self::sendToMultipleRoles(
+            $managementRoles,
+            'New Report Received',
+            "A new report has been submitted for event \"{$event->title}\" by {$creator->name}. Please review and provide feedback.",
+            'report',
+            $event
+        );
+    }
+
+    public static function notifyReportFeedback(\App\Models\Report $report): void
+    {
+        $event = $report->event;
+        $creator = $report->creator;
+        $feedbackBy = $report->feedbackBy;
+
+        if ($creator) {
+            self::send(
+                $creator,
+                'Report Feedback Received',
+                "Management ({$feedbackBy->name}) has provided feedback on your report \"{$report->title}\" for event \"{$event->title}\".",
+                'report',
+                $event
+            );
+        }
+    }
+
+    public static function notifySurveyReply(\App\Models\Report $report): void
+    {
+        $event = $report->event;
+        $organizer = $report->creator;
+
+        $participants = $event->acceptedParticipants()->with('user')->get();
+
+        foreach ($participants as $participant) {
+            self::send(
+                $participant->user,
+                'Organizer Replied to Survey',
+                "The organizer ({$organizer->name}) has posted a response/reply to the survey results for event \"{$event->title}\". You can view it in the event details.",
+                'survey',
+                $event
+            );
+        }
+    }
+
+    public static function notifySurveyGlobalReply(\App\Models\Survey $survey): void
+    {
+        $event = $survey->event;
+        $participants = $event->acceptedParticipants()->with('user')->get();
+
+        foreach ($participants as $participant) {
+            self::send(
+                $participant->user,
+                'Organizer Replied to Survey Feedback',
+                "The organizer has posted a global response to the survey feedback for event \"{$event->title}\". You can view it in the event details.",
+                'survey_global_reply',
+                $event
+            );
+        }
+    }
 }

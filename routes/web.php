@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/events/{event}/reports', [ReportController::class, 'store'])->name('reports.store');
         Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
         Route::post('/reports/{report}/feedback', [ReportController::class, 'submitFeedback'])->name('reports.feedback');
+        Route::post('/reports/{report}/survey-reply', [ReportController::class, 'updateSurveyReply'])->name('reports.updateSurveyReply');
         Route::get('/reports/{report}/pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
         Route::get('/reports/{report}/excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
 
@@ -136,6 +137,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/events/{event}/survey/report', [\App\Http\Controllers\SurveyController::class, 'viewReport'])->name('surveys.report');
     Route::get('/events/{event}/requirements/manage', [\App\Http\Controllers\SurveyController::class, 'manageRequirements'])->name('surveys.requirements.manage');
     Route::post('/events/{event}/requirements/manage', [\App\Http\Controllers\SurveyController::class, 'saveRequirements'])->name('surveys.requirements.save');
+    Route::post('/events/{event}/survey/reply', [\App\Http\Controllers\SurveyController::class, 'submitReply'])->name('surveys.reply');
 
     // Surveys & Requirements (Participant)
     Route::get('/events/{event}/requirements', [\App\Http\Controllers\SurveyController::class, 'showRequirements'])->name('surveys.requirements.show');

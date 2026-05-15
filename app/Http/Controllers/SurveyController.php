@@ -149,6 +149,28 @@ class SurveyController extends Controller
         return view('surveys.report', compact('event', 'survey', 'reportData', 'finalScore', 'conclusion', 'unsatisfactory'));
     }
 
+    public function submitReply(Request $request, Event $event)
+    {
+        $this->authorizeOrganizer($event);
+
+        $request->validate([
+            'organizer_reply' => 'required|string',
+        ]);
+
+        $survey = $event->survey;
+        if (!$survey) {
+            return back()->with('error', 'Survey not found.');
+        }
+
+        $survey->update([
+            'organizer_reply' => $request->organizer_reply,
+        ]);
+
+        \App\Services\NotificationService::notifySurveyGlobalReply($survey);
+
+        return back()->with('success', 'Global reply submitted successfully and participants notified!');
+    }
+
     // --- Participant Actions (Requirements) ---
 
     public function showRequirements(Event $event)
@@ -260,8 +282,8 @@ class SurveyController extends Controller
     private function authorizeOrganizer(Event $event)
     {
         $user = auth()->user();
-        if (!$user->isAdmin() && $event->created_by !== $user->id) {
-            abort(403);
+        if (!$user->isAdmin() && !$user->isHeadDepartment() && !$user->isACOO() && !$user->isLecturer() && $event->created_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
         }
     }
 }

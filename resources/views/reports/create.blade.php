@@ -24,6 +24,58 @@
             </div>
         </div>
 
+        {{-- ─── EXISTING REPORTS SECTION ─── --}}
+        @if($reports->count() > 0)
+        <div style="margin-bottom: 2.5rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-history" style="color: #980517;"></i> Submitted Reports
+            </h4>
+            <div class="table-container" style="margin: 0; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Feedback</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($reports as $existingReport)
+                        <tr>
+                            <td style="font-weight: 600;">{{ $existingReport->title }}</td>
+                            <td style="font-size: 0.875rem;">{{ $existingReport->created_at->format('d M Y') }}</td>
+                            <td>
+                                <span class="badge-status {{ $existingReport->type === 'financial' ? 'badge-ongoing' : 'badge-published' }}" style="font-size: 0.7rem;">
+                                    {{ ucfirst($existingReport->type) }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($existingReport->management_feedback)
+                                    <span class="badge-status badge-accepted" style="font-size: 0.7rem;"><i class="fas fa-check-circle"></i> Received</span>
+                                @else
+                                    <span class="badge-status badge-pending" style="font-size: 0.7rem;"><i class="fas fa-clock"></i> Pending</span>
+                                @endif
+                            </td>
+                            <td>
+                                <a href="{{ route('reports.show', $existingReport) }}" class="btn btn-sm btn-outline">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr style="margin-bottom: 2rem; border: none; border-top: 1px solid var(--border-color); opacity: 0.5;">
+        @endif
+
+        <h4 style="margin-bottom: 1.5rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-plus-circle" style="color: #980517;"></i> Add New Report
+        </h4>
+
         <form method="POST" action="{{ route('reports.store', $event) }}" x-data="{ type: 'overall' }">
             @csrf
             

@@ -86,7 +86,7 @@
 <!-- Reports Needing Feedback -->
 @if($pendingFeedbackReports->count() > 0)
 <div class="card mt-3">
-    <div class="card-header" style="background: #0284c7; color: white;">
+    <div class="card-header" style="background: linear-gradient(135deg, #980517, #7f0413); color: white;">
         <h3 class="card-title" style="color: white;"><i class="fas fa-comment-dots" style="margin-right:0.5rem;"></i> Reports Needing Feedback</h3>
         <span class="badge-status" style="background: rgba(255,255,255,0.2); color: white;">{{ $pendingFeedbackReports->count() }} PENDING</span>
     </div>

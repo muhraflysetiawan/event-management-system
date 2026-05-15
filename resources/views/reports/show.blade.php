@@ -2,13 +2,57 @@
 @section('title', 'Report Details')
 
 @section('content')
-<div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+@push('styles')
+<style>
+    .report-top-bar {
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .report-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    @media (max-width: 640px) {
+        .report-top-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+        .report-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+        .report-actions > * {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+        }
+        .report-actions .action-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        .report-actions .action-group .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+@endpush
+
+<div class="report-top-bar">
     <a href="{{ route('events.show', $report->event) }}" class="link"><i class="fas fa-arrow-left"></i> Back to event</a>
-    <div style="display: flex; align-items: center; gap: 1rem;">
+    <div class="report-actions">
         @if($report->management_feedback)
-            <span class="badge-status badge-accepted"><i class="fas fa-check-circle"></i> Feedback Received</span>
+            <span class="badge-status badge-accepted" style="width: 100%;"><i class="fas fa-check-circle"></i> Feedback Received</span>
         @else
-            <span class="badge-status badge-pending"><i class="fas fa-clock"></i> Awaiting Feedback</span>
+            <span class="badge-status badge-pending" style="width: 100%;"><i class="fas fa-clock"></i> Awaiting Feedback</span>
         @endif
         
         <div class="action-group">
@@ -88,6 +132,8 @@
 
         <hr style="margin: 2.5rem 0; border: none; border-top: 1px solid var(--border-color);">
 
+        <hr style="margin: 2.5rem 0; border: none; border-top: 1px solid var(--border-color);">
+
         {{-- ─── Management Feedback Section ─── --}}
         @if($report->management_feedback)
             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-lg); padding: 1.5rem;">
@@ -118,6 +164,38 @@
                 Waiting for management to review and provide feedback.
             </div>
         @endif
+
+        <hr style="margin: 2.5rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+        {{-- ─── Survey Reply Section ─── --}}
+        <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h4 style="color: var(--text-primary); margin: 0;"><i class="fas fa-reply"></i> Survey Response / Organizer Reply</h4>
+                @if($report->survey_reply)
+                    <span class="badge-status badge-accepted" style="font-size: 0.75rem;"><i class="fas fa-check"></i> Reply Posted</span>
+                @else
+                    <span class="badge-status badge-pending" style="font-size: 0.75rem;"><i class="fas fa-clock"></i> No Reply Yet</span>
+                @endif
+            </div>
+
+            @if(auth()->user()->isAdmin() || $report->created_by === auth()->id())
+                <form method="POST" action="{{ route('reports.updateSurveyReply', $report) }}">
+                    @csrf
+                    <div class="form-group">
+                        <textarea name="survey_reply" class="form-input" rows="4" placeholder="Write your response to the survey results and feedback here... participants will be notified." required>{{ old('survey_reply', $report->survey_reply) }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {{ $report->survey_reply ? 'Update Reply' : 'Submit Reply' }}
+                    </button>
+                </form>
+            @elseif($report->survey_reply)
+                <div style="color: var(--text-secondary); line-height: 1.7; white-space: pre-line;">{{ $report->survey_reply }}</div>
+            @else
+                <div style="text-align: center; color: var(--text-muted); font-style: italic; padding: 1rem;">
+                    No reply has been provided by the organizer yet.
+                </div>
+            @endif
+        </div>
     </div>
 </div>
 @endsection

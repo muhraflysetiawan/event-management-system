@@ -2,31 +2,87 @@
 @section('title', 'Manage Participants')
 
 @section('content')
+@push('styles')
+<style>
+    .participant-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .participant-title {
+        margin: 0;
+        flex-shrink: 0;
+    }
+    .participant-filters {
+        display: flex;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 250px;
+        margin: 0;
+    }
+    .participant-filters select {
+        flex: 1;
+        min-width: 120px;
+    }
+    .participant-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+        .participant-controls {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+        .participant-filters {
+            flex-direction: column;
+            min-width: 100%;
+        }
+        .participant-filters select {
+            width: 100%;
+        }
+        .participant-actions {
+            width: 100%;
+        }
+        .participant-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+@endpush
+
 <div class="card">
     {{-- ─── Filters ─── --}}
-    <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem; align-items: flex-start;">
-        <h3 class="card-title" style="flex-shrink: 0;">Participants</h3>
-        <form method="GET" action="{{ route('participants.index') }}" style="display: flex; flex-wrap: wrap; gap: 0.5rem; flex: 1; min-width: 0; align-items: center; margin: 0;">
-            <select name="event_id" class="form-input" style="flex: 1; min-width: 180px; max-width: 300px;" onchange="this.form.submit()">
-                <option value="">All Events</option>
-                @foreach($events as $t)
-                <option value="{{ $t->id }}" {{ request('event_id') == $t->id ? 'selected' : '' }}>{{ $t->title }}</option>
-                @endforeach
-            </select>
-            <select name="status" class="form-input" style="min-width: 120px; max-width: 160px;" onchange="this.form.submit()">
-                <option value="">All Status</option>
-                @foreach(['pending','accepted','rejected'] as $s)
-                <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
-                @endforeach
-            </select>
-        </form>
-        <div style="display: flex; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap;">
-            <a href="{{ route('attendance.export.pdf', request()->all()) }}" class="btn btn-sm btn-danger">
-                <i class="fas fa-file-pdf"></i> PDF
-            </a>
-            <a href="{{ route('attendance.export.excel', request()->all()) }}" class="btn btn-sm btn-success">
-                <i class="fas fa-file-excel"></i> Excel
-            </a>
+    <div class="card-header" style="display: block;">
+        <div class="participant-controls">
+            <h3 class="card-title participant-title">Participants</h3>
+            <form method="GET" action="{{ route('participants.index') }}" class="participant-filters">
+                <select name="event_id" class="form-input" onchange="this.form.submit()">
+                    <option value="">All Events</option>
+                    @foreach($events as $t)
+                    <option value="{{ $t->id }}" {{ request('event_id') == $t->id ? 'selected' : '' }}>{{ $t->title }}</option>
+                    @endforeach
+                </select>
+                <select name="status" class="form-input" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    @foreach(['pending','accepted','rejected'] as $s)
+                    <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+                    @endforeach
+                </select>
+            </form>
+            <div class="participant-actions">
+                <a href="{{ route('attendance.export.pdf', request()->all()) }}" class="btn btn-sm btn-danger">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+                <a href="{{ route('attendance.export.excel', request()->all()) }}" class="btn btn-sm btn-success">
+                    <i class="fas fa-file-excel"></i> Excel
+                </a>
+            </div>
         </div>
     </div>
 

@@ -14,6 +14,7 @@
     $hasAlreadyApproved = in_array($userRoleSlug, $event->approved_by_roles ?? []);
     $isRequiredToApprove = in_array($userRoleSlug, $event->required_approval_roles ?? []);
     $canEdit = $isAdmin || ($isCreator && $isDraft);
+    $hasSurvey = $event->survey()->exists();
 @endphp
 
 {{-- ─── EVENT DETAILS CARD ─── --}}
@@ -158,9 +159,15 @@
                 @if($isFullyApproved)
                     <form method="POST" action="{{ route('events.publish', $event) }}" id="publish-section">
                         @csrf
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" {{ !$hasSurvey ? 'disabled' : '' }} title="{{ !$hasSurvey ? 'Please create a survey first' : '' }}">
                             <i class="fas fa-paper-plane"></i> Post Event
                         </button>
+                        @if(!$hasSurvey)
+                            <div style="color: #dc2626; font-size: 0.75rem; font-weight: 600; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap;">
+                                <i class="fas fa-exclamation-triangle"></i> Survey required to post.
+                                <a href="{{ route('surveys.manage', $event) }}" style="color: #980517; text-decoration: underline; margin-left: 0.2rem;">Create Survey Now &rarr;</a>
+                            </div>
+                        @endif
                     </form>
                 @endif
                 <form action="{{ route('events.destroy', $event) }}" method="POST"
@@ -173,7 +180,7 @@
             @endif
 
             {{-- Management tools (published/ongoing/completed) --}}
-            @if($isAdmin || ($isCreator && $isPublished) || ($user->isExternal() && $isPublished))
+            @if($isAdmin || $user->isHeadDepartment() || $user->isACOO() || $user->isLecturer() || ($isCreator && $isPublished) || ($user->isExternal() && $isPublished))
                 <a href="{{ route('attendance.generate', $event) }}" class="btn btn-outline">
                     <i class="fas fa-qrcode"></i> Attendance
                 </a>
@@ -183,8 +190,17 @@
                 <a href="{{ route('certificates.manage', $event) }}" class="btn btn-outline">
                     <i class="fas fa-award"></i> Certificates
                 </a>
-                <a href="{{ route('surveys.manage', $event) }}" class="btn btn-outline">
+                <a href="{{ route('surveys.manage', $event) }}" class="btn btn-outline" style="position: relative;">
                     <i class="fas fa-poll"></i> Survey
+                    @if($hasSurvey)
+                        <span style="position: absolute; top: -5px; right: -5px; background: #059669; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid white;" title="Survey Created">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    @else
+                        <span style="position: absolute; top: -5px; right: -5px; background: #dc2626; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid white;" title="Survey Required">
+                            <i class="fas fa-exclamation"></i>
+                        </span>
+                    @endif
                 </a>
                 <a href="{{ route('surveys.requirements.manage', $event) }}" class="btn btn-outline">
                     <i class="fas fa-tasks"></i> Requirements
@@ -228,19 +244,49 @@
     </div>{{-- /card-body --}}
 </div>{{-- /card --}}
 
+{{-- ─── Organizer Survey Replies ─── --}}
+{{-- ─── Organizer Survey Replies ─── --}}
+@if($event->survey && $event->survey->organizer_reply && $userParticipant)
+<div id="survey-reply" class="card mb-3" style="border: 2px solid #059669; background: rgba(5, 150, 105, 0.03);">
+    <div class="card-header" style="background: rgba(5, 150, 105, 0.1); border-bottom: 1px solid rgba(5, 150, 105, 0.2);">
+        <h3 class="card-title" style="color: #047857; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-comment-dots"></i> Global Organizer Feedback
+        </h3>
+    </div>
+    <div class="card-body">
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">The event organizer has posted a general response to the overall survey feedback.</p>
+        
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+            <div style="font-size: 0.8rem; color: #059669; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fas fa-bullhorn"></i> Organizer's Message
+            </div>
+            <div style="color: var(--text-primary); line-height: 1.7; font-size: 0.95rem; white-space: pre-wrap;">{{ $event->survey->organizer_reply }}</div>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- ─── Event Status Flow Control ─── --}}
 @if(($isAdmin || $isCreator) && in_array($event->status, ['published', 'ongoing']))
 <div class="card mb-3" style="background: linear-gradient(135deg, #980517, #473f3d); border: none; padding: 0;">
     <div style="padding: 1.25rem;">
         <form method="POST" action="{{ route('events.updateStatus', $event) }}">
             @csrf
-            <button type="submit" style="width: 100%; background: rgba(255,255,255,0.12); color: #FFFFFF; font-weight: 800; border: 2px solid rgba(255,255,255,0.4); padding: 0.9rem 1.5rem; border-radius: var(--radius-md); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; letter-spacing: 0.03em;">
+            <button type="submit" 
+                style="width: 100%; background: {{ ($event->status === 'published' && !$hasSurvey) ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.12)' }}; color: {{ ($event->status === 'published' && !$hasSurvey) ? 'rgba(255,255,255,0.4)' : '#FFFFFF' }}; font-weight: 800; border: 2px solid {{ ($event->status === 'published' && !$hasSurvey) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.4)' }}; padding: 0.9rem 1.5rem; border-radius: var(--radius-md); cursor: {{ ($event->status === 'published' && !$hasSurvey) ? 'not-allowed' : 'pointer' }}; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; letter-spacing: 0.03em;"
+                {{ ($event->status === 'published' && !$hasSurvey) ? 'disabled' : '' }}>
                 @if($event->status === 'published')
-                    <i class="fas fa-play" style="color: #FFFFFF;"></i> START EVENT — Move to Ongoing
+                    <i class="fas fa-play" style="color: inherit;"></i> START EVENT — Move to Ongoing
                 @elseif($event->status === 'ongoing')
-                    <i class="fas fa-flag-checkered" style="color: #FFFFFF;"></i> COMPLETE EVENT — Mark as Completed
+                    <i class="fas fa-flag-checkered" style="color: inherit;"></i> COMPLETE EVENT — Mark as Completed
                 @endif
             </button>
+            @if($event->status === 'published' && !$hasSurvey)
+                <p style="text-align: center; color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-top: 0.5rem; font-weight: 600;">
+                    <i class="fas fa-exclamation-circle"></i> Survey must be created before starting the event.
+                    <a href="{{ route('surveys.manage', $event) }}" style="color: #FFFFFF; text-decoration: underline; margin-left: 0.4rem;">Create Now &rarr;</a>
+                </p>
+            @endif
         </form>
     </div>
 </div>

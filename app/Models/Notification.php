@@ -41,6 +41,9 @@ class Notification extends Model
             if ($this->type === 'event' && str_contains($this->title, 'Fully Approved')) {
                 return route('events.show', $this->event_id) . '#publish-section';
             }
+            if ($this->type === 'survey_global_reply') {
+                return route('events.show', $this->event_id) . '#survey-reply';
+            }
             return route('events.show', $this->event_id);
         }
 

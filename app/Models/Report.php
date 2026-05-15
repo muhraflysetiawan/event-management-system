@@ -12,6 +12,7 @@ class Report extends Model
         'summary', 'total_participants', 'total_attended',
         'budget_allocated', 'total_expenses', 'financial_notes',
         'management_feedback', 'management_feedback_by', 'management_feedback_at',
+        'survey_reply',
     ];
 
     protected $casts = [

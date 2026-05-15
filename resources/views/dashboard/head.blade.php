@@ -11,7 +11,7 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><i class="fas fa-comment-medical"></i></div>
+        <div class="stat-icon red"><i class="fas fa-comment-medical"></i></div>
         <div class="stat-info">
             <div class="stat-value">{{ $pendingFeedbackReports->count() }}</div>
             <div class="stat-label">Reports Needing Feedback</div>
@@ -26,7 +26,7 @@
     <div class="card-body">
         <div class="events-grid">
             @forelse($pendingFeedbackReports as $report)
-                <div class="event-card-premium" onclick="window.location='{{ route('reports.show', $report) }}'" style="cursor: pointer; background: linear-gradient(135deg, #0284c7, #06b6d4) !important;">
+                <div class="event-card-premium" onclick="window.location='{{ route('reports.show', $report) }}'" style="cursor: pointer; background: linear-gradient(135deg, #980517, #7f0413) !important;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <span class="badge-status" style="background: rgba(255,255,255,0.2) !important;">FEEDBACK REQUIRED</span>
                     </div>

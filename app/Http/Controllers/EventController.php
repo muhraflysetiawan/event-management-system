@@ -86,6 +86,13 @@ class EventController extends Controller
             'materials' => 'nullable|array',
             'materials.*.title' => 'nullable|string|max:255',
             'materials.*.description' => 'nullable|string',
+            'survey_title' => 'nullable|string|max:255',
+            'survey_questions' => 'nullable|array',
+            'survey_questions.*.text' => 'required_with:survey_questions|string',
+            'survey_questions.*.type' => 'required_with:survey_questions|in:scale,text',
+            'survey_questions.*.is_required' => 'nullable|boolean',
+            'requirements' => 'nullable|array',
+            'requirements.*.text' => 'required_with:requirements|string',
         ]);
 
         if ($request->hasFile('project_brief_pdf')) {
@@ -107,13 +114,41 @@ class EventController extends Controller
             \App\Services\NotificationService::notifyApprovalRequest($event);
         }
 
+        // Handle Survey
+        if ($request->has('survey_questions')) {
+            $survey = $event->survey()->create([
+                'title' => $request->survey_title ?? 'Satisfaction Survey: ' . $event->title,
+            ]);
+            foreach ($request->survey_questions as $q) {
+                if (!empty($q['text'])) {
+                    $survey->questions()->create([
+                        'question_text' => $q['text'],
+                        'type' => $q['type'],
+                        'is_required' => isset($q['is_required']) ? (bool)$q['is_required'] : false,
+                    ]);
+                }
+            }
+        }
+
+        // Handle Requirements
+        if ($request->has('requirements')) {
+            foreach ($request->requirements as $r) {
+                if (!empty($r['text'])) {
+                    $event->requirements()->create([
+                        'question_text' => $r['text'],
+                        'is_required' => true,
+                    ]);
+                }
+            }
+        }
+
         return redirect()->route('events.show', $event)
             ->with('success', 'Event created successfully!');
     }
 
     public function show(Event $event)
     {
-        $event->load(['creator', 'participants.user', 'attendances.user']);
+        $event->load(['creator', 'participants.user', 'attendances.user', 'survey.questions', 'requirements']);
         $userParticipant = null;
         if (auth()->check()) {
             $userParticipant = $event->participants()->where('user_id', auth()->id())->first();
@@ -130,7 +165,10 @@ class EventController extends Controller
             return redirect()->route('events.show', $event)->with('error', 'You can only edit events that are still in draft status.');
         }
 
-        return view('events.edit', compact('event'));
+        return view('events.edit', compact('event'))->with([
+            'survey' => $event->survey()->with('questions')->first(),
+            'requirements' => $event->requirements,
+        ]);
     }
 
     public function update(Request $request, Event $event)
@@ -157,6 +195,13 @@ class EventController extends Controller
             'required_approval_roles' => 'required|array|min:1',
             'required_approval_roles.*' => 'string|in:admin,head_csdl,head_baak,head_finance,head_gsd,head_sis,head_learning,acoo',
             'status' => 'required|in:draft,pending_approval,approved,published,ongoing,completed,cancelled',
+            'survey_title' => 'nullable|string|max:255',
+            'survey_questions' => 'nullable|array',
+            'survey_questions.*.text' => 'required_with:survey_questions|string',
+            'survey_questions.*.type' => 'required_with:survey_questions|in:scale,text',
+            'survey_questions.*.is_required' => 'nullable|boolean',
+            'requirements' => 'nullable|array',
+            'requirements.*.text' => 'required_with:requirements|string',
         ]);
 
         if (!$user->isAdmin()) {
@@ -187,6 +232,45 @@ class EventController extends Controller
 
         if ($oldData['status'] !== 'completed' && $event->status === 'completed') {
             \App\Models\Certificate::createPendingForEvent($event);
+        }
+
+        // Update Survey
+        if ($request->has('survey_questions')) {
+            $survey = $event->survey()->first();
+            if ($survey) {
+                $survey->update(['title' => $request->survey_title]);
+                $survey->questions()->delete();
+            } else {
+                $survey = $event->survey()->create(['title' => $request->survey_title]);
+            }
+
+            foreach ($request->survey_questions as $q) {
+                if (!empty($q['text'])) {
+                    $survey->questions()->create([
+                        'question_text' => $q['text'],
+                        'type' => $q['type'],
+                        'is_required' => isset($q['is_required']) ? (bool)$q['is_required'] : false,
+                    ]);
+                }
+            }
+        } elseif ($event->survey) {
+             // If survey_questions is missing but survey exists, we might want to keep it or delete it?
+             // Usually better to keep it unless explicitly removed. 
+             // But if they submitted the form without survey sections, it might mean they want to remove it.
+             // Given the requirements, I'll only delete if they provide an empty array but the key exists.
+        }
+
+        // Update Requirements
+        if ($request->has('requirements')) {
+            $event->requirements()->delete();
+            foreach ($request->requirements as $r) {
+                if (!empty($r['text'])) {
+                    $event->requirements()->create([
+                        'question_text' => $r['text'],
+                        'is_required' => true,
+                    ]);
+                }
+            }
         }
         
         return redirect()->route('events.show', $event)
@@ -256,6 +340,9 @@ class EventController extends Controller
         }
 
         if ($event->isFullyApproved() && $event->status === 'pending_approval') {
+            if (!$event->survey()->exists()) {
+                return back()->with('error', 'Please create a survey before publishing the event.');
+            }
             $event->update(['status' => 'published']); // Changed from 'approved' to 'published'
             \App\Services\NotificationService::notifyEventPublished($event);
             return back()->with('success', 'Event published successfully!');
@@ -279,6 +366,9 @@ class EventController extends Controller
         }
 
         if ($nextStatus) {
+            if ($nextStatus === 'ongoing' && !$event->survey()->exists()) {
+                return back()->with('error', 'Please create a survey before starting the event.');
+            }
             $event->update(['status' => $nextStatus]);
             
             if ($nextStatus === 'completed') {

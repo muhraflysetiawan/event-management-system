@@ -13,8 +13,7 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        $roles = Role::whereIn('slug', ['student', 'lecturer'])->get();
-        return view('auth.register', compact('roles'));
+        return view('auth.register');
     }
 
     public function register(Request $request)
@@ -25,30 +24,16 @@ class RegisterController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)],
             'student_id' => ['nullable', 'string', 'max:50'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'role_id' => ['required', 'exists:roles,id'],
-            'sk_document' => ['nullable', 'file', 'mimes:pdf,jpg,png', 'max:2048'],
         ]);
 
-        $role = Role::find($request->role_id);
+        $role = Role::where('slug', 'student')->first();
 
-        // Domain restriction for student and lecturer
-        if (in_array($role->slug, ['student', 'lecturer'])) {
-            if (!str_ends_with($request->email, '@krw.horizon.ac.id')) {
-                return back()->withErrors(['email' => 'Students and Lecturers must use @krw.horizon.ac.id domain.'])->withInput();
-            }
+        // Domain restriction for student
+        if (!str_ends_with($request->email, '@krw.horizon.ac.id')) {
+            return back()->withErrors(['email' => 'Students must use @krw.horizon.ac.id domain.'])->withInput();
         }
 
-        // SK Document requirement for committee
-        if ($role->slug === 'committee' && !$request->hasFile('sk_document')) {
-            return back()->withErrors(['sk_document' => 'SK Document is required for Committee role.'])->withInput();
-        }
-
-        $isActive = in_array($role->slug, ['student', 'lecturer']);
-
-        $skPath = null;
-        if ($request->hasFile('sk_document')) {
-            $skPath = $request->file('sk_document')->store('sk_documents', 'public');
-        }
+        $isActive = true; // students are active by default
 
         $otp = sprintf("%06d", mt_rand(1, 999999));
 
@@ -62,7 +47,6 @@ class RegisterController extends Controller
             'is_active' => $isActive,
             'otp_code' => $otp,
             'otp_expires_at' => now()->addMinutes(10),
-            'sk_document' => $skPath,
         ]);
 
         \Illuminate\Support\Facades\Mail::raw("Your OTP for Horizon Event Management is: {$otp}. It will expire in 10 minutes.", function($msg) use ($user) {

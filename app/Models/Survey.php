@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Survey extends Model
 {
-    protected $fillable = ['event_id', 'title'];
+    protected $fillable = ['event_id', 'title', 'organizer_reply'];
 
     public function event(): BelongsTo
     {

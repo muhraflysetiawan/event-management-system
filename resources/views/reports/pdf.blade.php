@@ -70,6 +70,25 @@
 </div>
 @endif
 
+@if(!empty($surveySummary))
+<h2>Survey Results Summary</h2>
+<table>
+    <thead><tr><th>Question</th><th style="text-align:center;">Average Score (1-5)</th><th style="text-align:center;">Total Responses</th></tr></thead>
+    <tbody>
+    @foreach($surveySummary as $item)
+    <tr><td>{{ $item['question'] }}</td><td style="text-align:center; font-weight:bold;">{{ $item['average'] }}</td><td style="text-align:center;">{{ $item['total'] }}</td></tr>
+    @endforeach
+    </tbody>
+</table>
+@endif
+
+@if($report->survey_reply)
+<div style="margin-top: 30px; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <h3 style="color: #1e293b; font-size: 14px; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Organizer's Response to Survey</h3>
+    <div style="color: #334155; margin-top: 10px;">{!! nl2br(e($report->survey_reply)) !!}</div>
+</div>
+@endif
+
 <h2>Participants</h2>
 <table>
     <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Reg Number</th><th>Status</th></tr></thead>

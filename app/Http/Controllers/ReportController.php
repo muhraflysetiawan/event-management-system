@@ -17,7 +17,12 @@ class ReportController extends Controller
             ->where('status', 'accepted')->count();
         $totalAttended = Attendance::where('event_id', $event->id)->count();
 
-        return view('reports.create', compact('event', 'totalParticipants', 'totalAttended'));
+        $reports = Report::where('event_id', $event->id)
+            ->with(['creator', 'feedbackBy'])
+            ->latest()
+            ->get();
+
+        return view('reports.create', compact('event', 'totalParticipants', 'totalAttended', 'reports'));
     }
 
     public function store(Request $request, Event $event)
@@ -39,6 +44,8 @@ class ReportController extends Controller
         $validated['total_attended'] = Attendance::where('event_id', $event->id)->count();
 
         $report = Report::create($validated);
+
+        \App\Services\NotificationService::notifyReportSubmitted($report);
 
         return redirect()->route('reports.show', $report)
             ->with('success', 'Report created successfully!');
@@ -67,7 +74,29 @@ class ReportController extends Controller
             'management_feedback_at' => now(),
         ]);
 
+        \App\Services\NotificationService::notifyReportFeedback($report);
+
         return back()->with('success', 'Feedback submitted successfully!');
+    }
+
+    public function updateSurveyReply(Request $request, Report $report)
+    {
+        $user = auth()->user();
+        if ($report->created_by !== $user->id && !$user->isAdmin()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'survey_reply' => 'required|string',
+        ]);
+
+        $report->update([
+            'survey_reply' => $request->survey_reply,
+        ]);
+
+        \App\Services\NotificationService::notifySurveyReply($report);
+
+        return back()->with('success', 'Survey reply updated and participants notified!');
     }
 
     public function exportPdf(Report $report)
@@ -80,10 +109,27 @@ class ReportController extends Controller
         }
 
         $report->load(['event.participants.user', 'event.attendances.user', 'creator', 'feedbackBy']);
+        
+        // Fetch Survey Data
+        $survey = \App\Models\Survey::where('event_id', $report->event_id)->with('questions.responses')->first();
+        $surveySummary = [];
+        if ($survey) {
+            foreach ($survey->questions as $question) {
+                if ($question->type === 'scale') {
+                    $avg = $question->responses()->avg('answer');
+                    $surveySummary[] = [
+                        'question' => $question->question_text,
+                        'average' => round($avg, 2),
+                        'total' => $question->responses()->count(),
+                    ];
+                }
+            }
+        }
+
         $attendances = Attendance::with('user')->where('event_id', $report->event_id)->get();
         $participants = Participant::with('user')->where('event_id', $report->event_id)->get();
 
-        $pdf = Pdf::loadView('reports.pdf', compact('report', 'attendances', 'participants'));
+        $pdf = Pdf::loadView('reports.pdf', compact('report', 'attendances', 'participants', 'surveySummary'));
         return $pdf->download("report-{$report->event->title}.pdf");
     }
 
