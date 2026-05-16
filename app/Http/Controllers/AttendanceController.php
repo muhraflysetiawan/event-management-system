@@ -58,7 +58,7 @@ class AttendanceController extends Controller
         $status = $request->input('status'); // 'open' or 'close'
 
         if ($status === 'open') {
-            $token = $event->qr_token ?: Str::random(10);
+            $token = $event->qr_token ?: Str::upper(Str::random(5));
             $event->update([
                 'is_attendance_open' => true,
                 'qr_token' => $token,

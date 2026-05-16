@@ -52,7 +52,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="start_date">Start Date & Time *</label>
-                    <input type="datetime-local" id="start_date" name="start_date" class="form-input" value="{{ old('start_date') }}" required>
+                    <input type="datetime-local" id="start_date" name="start_date" class="form-input" value="{{ old('start_date') }}" min="{{ now()->format('Y-m-d\TH:i') }}" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="end_date">End Date & Time *</label>

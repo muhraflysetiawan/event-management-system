@@ -25,7 +25,7 @@
             
             <div style="background:white;display:inline-block;padding:1.5rem;border-radius:var(--radius-lg);margin:1.5rem 0; border: 1px solid var(--border-color);">
                 @if($event->qr_token)
-                    {!! SimpleSoftwareIO\QrCode\Facades\QrCode::size(250)->generate(request()->getSchemeAndHttpHost() . '/attendance/checkin?token=' . $event->qr_token) !!}
+                    {!! SimpleSoftwareIO\QrCode\Facades\QrCode::size(250)->margin(1)->generate(route('attendance.checkin.form', ['token' => $event->qr_token], true)) !!}
                 @else
                     <div style="width: 250px; height: 250px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; color: #9ca3af;">
                         QR will appear when opened
@@ -33,9 +33,15 @@
                 @endif
             </div>
 
-            <div style="margin-top:1rem;padding:1rem;background:var(--bg-input);border-radius:var(--radius-sm);border:1px solid var(--border-color);">
-                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.375rem;">Check-in URL</div>
-                <code style="font-size:0.75rem;color:var(--primary-400);word-break:break-all;">{{ $event->qr_token ? request()->getSchemeAndHttpHost() . '/attendance/checkin?token=' . $event->qr_token : 'Not available' }}</code>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-sm);border:1px solid var(--border-color); text-align: left;">
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.375rem;">Check-in URL</div>
+                    <code style="font-size:0.75rem;color:var(--primary-400);word-break:break-all;">{{ $event->qr_token ? route('attendance.checkin.form', ['token' => $event->qr_token], true) : 'Not available' }}</code>
+                </div>
+                <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-sm);border:1px solid var(--border-color); text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.375rem;">Attendance Token</div>
+                    <div style="font-size:1.5rem; font-weight: 800; color: #980517; letter-spacing: 3px;">{{ $event->qr_token ?: '—' }}</div>
+                </div>
             </div>
         </div>
     </div>

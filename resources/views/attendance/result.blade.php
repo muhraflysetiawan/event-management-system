@@ -27,7 +27,8 @@
 
     <div style="margin-top: 1rem;">
         <style>
-            .btn-result-home {
+            .event-card-premium .btn-result-home,
+            .event-card-premium .btn-result-home i {
                 display: inline-block;
                 width: 100%;
                 background: #FFFFFF !important;
@@ -41,12 +42,17 @@
                 transition: all 0.3s ease;
                 cursor: pointer;
             }
-            .btn-result-home:hover {
+           /* .event-card-premium .btn-result-home:hover,
+            .event-card-premium .btn-result-home:hover i {
                 background: #980517 !important;
                 color: #FFFFFF !important;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 transform: translateY(-2px);
             }
+            .event-card-premium .btn-result-home:active {
+                transform: translateY(0) scale(0.98) !important;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }*/
         </style>
         <a href="{{ route('dashboard') }}" class="btn-result-home">
             <i class="fas fa-home"></i> Back to Dashboard

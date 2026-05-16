@@ -21,15 +21,17 @@
                 <label class="form-label" for="website_logo">Website Logo</label>
                 <div style="display:flex; align-items:center; gap:1.5rem; margin-top:0.5rem;">
                     @php $logo = \App\Models\Setting::get('website_logo'); @endphp
-                    <div style="width:60px; height:60px; background:var(--bg-sidebar); border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border-color); overflow:hidden;">
+                    <div id="logo-preview-container" style="width:60px; height:60px; background:var(--bg-sidebar); border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border-color); overflow:hidden;">
                         @if($logo)
-                            <img src="{{ asset('storage/' . $logo) }}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                            <img id="logo-preview-image" src="{{ asset('storage/' . $logo) }}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                            <i id="logo-preview-icon" class="fas fa-image" style="color:var(--text-muted); font-size:1.5rem; display:none;"></i>
                         @else
-                            <i class="fas fa-image" style="color:var(--text-muted); font-size:1.5rem;"></i>
+                            <img id="logo-preview-image" src="" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                            <i id="logo-preview-icon" class="fas fa-image" style="color:var(--text-muted); font-size:1.5rem;"></i>
                         @endif
                     </div>
                     <div style="flex:1;">
-                        <input type="file" id="website_logo" name="website_logo" class="form-input" accept="image/*">
+                        <input type="file" id="website_logo" name="website_logo" class="form-input" accept="image/*" onchange="previewLogo(this)">
                         <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Upload a square logo (recommended 512x512px). Replaces Sidebar, Login, and Register logos.</p>
                     </div>
                 </div>
@@ -43,4 +45,22 @@
         </form>
     </div>
 </div>
+
+<script>
+function previewLogo(input) {
+    const file = input.files[0];
+    const preview = document.getElementById('logo-preview-image');
+    const icon = document.getElementById('logo-preview-icon');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
 @endsection

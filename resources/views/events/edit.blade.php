@@ -57,7 +57,9 @@
                 <div class="form-group">
                     <label class="form-label" for="start_date">Start Date & Time *</label>
                     <input type="datetime-local" id="start_date" name="start_date" class="form-input"
-                        value="{{ old('start_date', $event->start_date->format('Y-m-d\TH:i')) }}" required>
+                        value="{{ old('start_date', $event->start_date->format('Y-m-d\TH:i')) }}" 
+                        min="{{ $event->start_date->isPast() ? $event->start_date->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i') }}"
+                        required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="end_date">End Date & Time *</label>

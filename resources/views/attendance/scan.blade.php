@@ -64,7 +64,7 @@ document.addEventListener('alpine:init', () => {
                         const url = new URL(decodedText);
                         const token = url.searchParams.get('token');
                         if (token) {
-                            window.location.href = 'http://127.0.0.1:8000/attendance/checkin?token=' + token;
+                            window.location.href = window.location.origin + '/attendance/checkin?token=' + token;
                         } else {
                             // Fallback if not a standard URL
                             window.location.href = decodedText;
