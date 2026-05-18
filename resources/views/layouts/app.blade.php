@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-id" content="{{ auth()->check() ? auth()->id() : '' }}">
     <title>@yield('title', 'Dashboard') — {{ $appName }}</title>
     <meta name="description" content="@yield('description', 'Event Management System Dashboard')">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +14,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        * {
-            transition: none !important;
-            animation: none !important;
-            scroll-behavior: auto !important;
-        }
         [x-cloak] { display: none !important; }
     </style>
     @stack('styles')
@@ -235,7 +231,7 @@
         .sidebar-hidden { transform: translateX(-100%) !important; }
         .sidebar-visible { transform: translateX(0) !important; }
 
-        @media (max-width: 767px) {
+        @media (max-width: 1024px) {
             .menu-toggle { display: block !important; }
             .sidebar-close { display: block !important; }
             .app-body { display: block !important; width: 100% !important; }
@@ -269,7 +265,7 @@
         }
 
         /* ═══════════ TABLET & DESKTOP STABILITY ═══════════ */
-        @media (min-width: 768px) {
+        @media (min-width: 1025px) {
             .sidebar { transform: translateX(0) !important; position: fixed !important; display: flex !important; }
             .main-content { margin-left: var(--sidebar-width) !important; width: calc(100% - var(--sidebar-width)) !important; }
             .topbar { padding: 0 1.5rem !important; }
@@ -300,8 +296,9 @@
     </style>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body x-data="{ sidebarOpen: window.innerWidth > 1024 }" 
-      :class="{ 'no-scroll': sidebarOpen && window.innerWidth <= 1024 }"
+<body x-data="{ sidebarOpen: window.innerWidth > 1024, isMobile: window.innerWidth <= 1024 }" 
+      @resize.window="isMobile = window.innerWidth <= 1024; if(!isMobile) sidebarOpen = true;"
+      :class="{ 'no-scroll': sidebarOpen && isMobile }"
       class="app-body">
     <!-- Sidebar -->
     <aside class="sidebar" 
@@ -453,6 +450,14 @@
                 <button type="button" class="menu-toggle" @click="sidebarOpen = !sidebarOpen">
                     <i class="fas fa-bars"></i>
                 </button>
+                <div class="mobile-logo lg:hidden" x-show="isMobile" style="display: flex; align-items: center; margin-right: 0.5rem;" x-cloak>
+                    @php $websiteLogo = \App\Models\Setting::get('website_logo'); @endphp
+                    @if($websiteLogo)
+                        <img src="{{ asset('storage/' . $websiteLogo) }}" style="height:32px; width:32px; object-fit:contain;">
+                    @else
+                        <i class="fas fa-user-graduate" style="color: white; font-size: 1.5rem;"></i>
+                    @endif
+                </div>
                 <h2 class="page-title">@yield('title', 'Dashboard')</h2>
             </div>
             <div class="topbar-right" style="z-index: 1;">

@@ -129,7 +129,7 @@ body {
     padding: 2.5rem;
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(20px);
-    animation: none;
+    /* animation: auto */
 }
 
 .guest-logo {
@@ -188,7 +188,7 @@ body {
     color: var(--text-primary);
     font-size: 0.9375rem;
     font-family: inherit;
-    transition: none;
+    transition: all 0.3s ease;
     outline: none;
 }
 
@@ -279,7 +279,7 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
-    transition: none;
+    transition: all 0.3s ease;
     text-decoration: none;
     white-space: nowrap;
 }
@@ -332,14 +332,14 @@ textarea.form-input { resize: vertical; min-height: 120px; }
 }
 
 .btn-outline {
-    background: #980517;
-    border: none;
-    color: #FFFFFF;
+    background: transparent;
+    border: 1px solid #980517;
+    color: #980517;
     box-shadow: var(--shadow-sm);
 }
 
 .btn-outline:hover {
-    background: #473f3d;
+    background: #980517;
     color: #FFFFFF;
 }
 
@@ -357,7 +357,7 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     border-radius: var(--radius-md);
     margin-bottom: 1.25rem;
     font-size: 0.9375rem;
-    animation: none;
+    /* animation: auto */
     position: relative;
 }
 
@@ -427,7 +427,7 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     flex-direction: column;
     z-index: 100;
     transform: none;
-    transition: none;
+    transition: all 0.3s ease;
     overflow-y: auto;
     border-right: none;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05); /* Only right shadow */
@@ -493,7 +493,7 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     text-decoration: none;
     font-size: 1rem;
     font-weight: 600;
-    transition: none;
+    transition: all 0.3s ease;
     position: relative;
 }
 
@@ -599,7 +599,7 @@ textarea.form-input { resize: vertical; min-height: 120px; }
 
 /* Icons default to brand color, except inside special containers */
 i { color: #980517; }
-.topbar i, .sidebar i, .btn i, .event-card-premium i, .nav-link.active i { color: inherit; }
+.topbar i, .sidebar i, .btn i, .event-card-premium i, .nav-link.active i, .stat-icon i { color: inherit; }
 
 /* Role & Status Badges (already defined later) */
 
@@ -609,15 +609,7 @@ i { color: #980517; }
     color: white !important;
 }
 
-.btn-outline {
-    border-color: #980517 !important;
-    color: #980517 !important;
-}
-
-.btn-outline:hover {
-    background: #980517 !important;
-    color: white !important;
-}
+/* Removed duplicate btn-outline */
 
 
 /* ═══════════ NOTIFICATION ═══════════ */
@@ -797,7 +789,7 @@ i { color: #980517; }
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0.5rem;
-    transition: none;
+    transition: all 0.3s ease;
 }
 
 .menu-toggle i, .sidebar-close i {
@@ -875,7 +867,7 @@ i { color: #980517; }
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
-    transition: none;
+    transition: all 0.3s ease;
 }
 
 .card:hover {
@@ -917,7 +909,7 @@ i { color: #980517; }
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
     gap: 1.5rem;
 }
 
@@ -949,7 +941,7 @@ i { color: #980517; }
     align-items: flex-start;
     gap: 1rem;
     box-shadow: var(--shadow-md);
-    transition: none !important;
+    transition: all 0.3s ease !important;
     transform: none !important;
     min-width: 0; /* Important */
     width: 100%;
@@ -992,7 +984,7 @@ i { color: #980517; }
     border: none;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: none;
+    transition: all 0.3s ease;
     text-decoration: none;
     color: inherit;
     display: block;
@@ -1292,7 +1284,7 @@ i { color: #980517; }
     gap: 1rem;
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
-    transition: none;
+    transition: all 0.3s ease;
 }
 
 .notification-item:hover { background: rgba(99, 102, 241, 0.04); }
@@ -1337,6 +1329,7 @@ i { color: #980517; }
 .chart-bars {
     display: flex;
     align-items: flex-end;
+    justify-content: space-around;
     gap: 0.75rem;
     height: 160px;
     padding-top: 1rem;
@@ -1360,7 +1353,7 @@ i { color: #980517; }
 .chart-bar {
     width: 24px;
     border-radius: 4px 4px 0 0;
-    transition: none;
+    transition: all 0.3s ease;
     min-height: 4px;
 }
 

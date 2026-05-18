@@ -11,6 +11,13 @@ class Notification extends Model
         'user_id', 'event_id', 'type', 'title', 'message', 'is_read',
     ];
 
+    protected static function booted()
+    {
+        static::created(function ($notification) {
+            event(new \App\Events\NotificationCreated($notification));
+        });
+    }
+
     protected function casts(): array
     {
         return [
